@@ -1,10 +1,10 @@
 {
-  "version": "1.3",
+  "version": "1.4",
   "source": "ydbd source code (trunk)",
   "generatedAt": "2026-02-25",
   "rootOptions": {
-    "-k|--token": { "description": "Security token", "visible": true, "required": false },
-    "-s|--server": { "description": "Server address to connect (HOST[:PORT])", "visible": true, "required": false },
+    "-k|--token": { "description": "security token", "visible": true, "required": false },
+    "-s|--server": { "description": "server address to connect", "visible": true, "required": false },
     "--allocator-info": { "description": "Print the name of allocator linked to the binary and exit", "visible": true, "required": false },
     "--compatibility-info": { "description": "Print compatibility info of this binary and exit", "visible": true, "required": false }
   },
@@ -30,7 +30,7 @@
                 "execute": {
                   "name": "execute",
                   "aliases": ["exec"],
-                  "description": "Execute MiniKQL on tablet",
+                  "description": "",
                   "visible": true,
                   "options": {
                     "--dry-run": { "description": "test changes without applying", "visible": true, "required": false }
@@ -39,14 +39,14 @@
                 "kill": {
                   "name": "kill",
                   "aliases": [],
-                  "description": "Kill/restart tablet",
+                  "description": "",
                   "visible": true,
                   "options": {}
                 },
                 "scheme-tx": {
                   "name": "scheme-tx",
                   "aliases": ["scheme"],
-                  "description": "Apply scheme changes to tablet",
+                  "description": "",
                   "visible": true,
                   "options": {
                     "--dry-run": { "description": "test changes without applying", "visible": true, "required": false },
@@ -96,7 +96,7 @@
         "debug": {
           "name": "debug",
           "aliases": [],
-          "description": "Debug commands",
+          "description": "",
           "visible": true,
           "subcommands": {
             "interconnect": {
@@ -127,9 +127,9 @@
                     "--num": { "description": "number of load actors", "visible": true, "required": false }
                   }
                 },
-                "closepeersocket": { "name": "closepeersocket", "aliases": [], "description": "Close peer socket on existing session", "visible": true, "options": { "--node": { "description": "peer node id", "visible": true, "required": true } } },
-                "closeinputsession": { "name": "closeinputsession", "aliases": [], "description": "Terminate input session", "visible": true, "options": { "--node": { "description": "peer node id", "visible": true, "required": true } } },
-                "poisonsession": { "name": "poisonsession", "aliases": [], "description": "Poison session", "visible": true, "options": { "--node": { "description": "peer node id", "visible": true, "required": true } } },
+                "closepeersocket": { "name": "closepeersocket", "aliases": [], "description": "Close peer socket on existing session", "visible": true, "options": { "--node": { "description": "peer node id to close socket for", "visible": true, "required": true } } },
+                "closeinputsession": { "name": "closeinputsession", "aliases": [], "description": "Terminate input session", "visible": true, "options": { "--node": { "description": "peer node id to close input session for", "visible": true, "required": true } } },
+                "poisonsession": { "name": "poisonsession", "aliases": [], "description": "Poison session", "visible": true, "options": { "--node": { "description": "peer node id to poison session for", "visible": true, "required": true } } },
                 "slowpoke": {
                   "name": "slowpoke",
                   "aliases": [],
@@ -139,10 +139,10 @@
                     "--num-actors": { "description": "number of actors to spawn", "visible": true, "required": true },
                     "--pool-id": { "description": "pool id to spawn actors within", "visible": true, "required": true },
                     "--duration": { "description": "test duration", "visible": true, "required": true },
-                    "--sleep-min": { "description": "min interval for event processing", "visible": true, "required": true },
-                    "--sleep-max": { "description": "max interval for event processing", "visible": true, "required": true },
-                    "--reschedule-min": { "description": "min interval between events", "visible": true, "required": true },
-                    "--reschedule-max": { "description": "max interval between events", "visible": true, "required": true }
+                    "--sleep-min": { "description": "min uniform interval for event processing", "visible": true, "required": true },
+                    "--sleep-max": { "description": "max uniform interval for event processing", "visible": true, "required": true },
+                    "--reschedule-min": { "description": "min uniform interval between events", "visible": true, "required": true },
+                    "--reschedule-max": { "description": "max uniform interval between events", "visible": true, "required": true }
                   }
                 }
               },
@@ -194,7 +194,7 @@
                 "obliterate": {
                   "name": "obliterate",
                   "aliases": [],
-                  "description": "Obliterate local disk",
+                  "description": "Obliterate local disk, so it will be self-formatted on startup",
                   "visible": true,
                   "options": {}
                 },
@@ -220,7 +220,7 @@
                     "write": {
                       "name": "write",
                       "aliases": [],
-                      "description": "Write PDisk metadata",
+                      "description": "Write PDisk metadata from proto or JSON",
                       "visible": true,
                       "options": {
                         "--from-proto": { "description": "read from text-proto file", "visible": true, "required": false },
@@ -426,8 +426,8 @@
               },
               "options": {}
             },
-            "list": { "name": "list", "aliases": [], "description": "List databases", "visible": true, "options": {} },
-            "options": { "name": "options", "aliases": [], "description": "Describe database options", "visible": true, "options": {} }
+            "list": { "name": "list", "aliases": [], "description": "List existing databases", "visible": true, "options": {} },
+            "options": { "name": "options", "aliases": [], "description": "Describe available database options", "visible": true, "options": {} }
           },
           "options": {}
         },
@@ -466,7 +466,7 @@
             "validator": {
               "name": "validator",
               "aliases": [],
-              "description": "Config validators",
+              "description": "",
               "visible": true,
               "subcommands": {
                 "list": { "name": "list", "aliases": [], "description": "List validators", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--retry": { "description": "retry count", "visible": true, "required": false } } },
@@ -889,16 +889,16 @@
       "description": "Init scheme root",
       "visible": false,
       "options": {
-        "-n|--name": { "description": "domain name", "visible": true, "required": true },
-        "--config": { "description": "global config (deprecated)", "visible": true, "required": false },
-        "--config-file": { "description": "config file (deprecated)", "visible": true, "required": false },
-        "-s|--server": { "description": "server address", "visible": true, "required": false }
+        "-n|--name": { "description": "Domain name", "visible": true, "required": true },
+        "--config": { "description": "Apply global config (deprecated)", "visible": true, "required": false },
+        "--config-file": { "description": "Load global config from file (deprecated)", "visible": true, "required": false },
+        "-s|--server": { "description": "server address to connect", "visible": true, "required": false }
       }
     },
     "persqueue-request": {
       "name": "persqueue-request",
       "aliases": [],
-      "description": "Send persqueue request",
+      "description": "Send protobuf request to a persqueue tablet",
       "visible": false,
       "options": {
         "--protobuf": { "description": "request protobuf", "visible": true, "required": false },
@@ -928,13 +928,13 @@
     "persqueue-discover-clusters": {
       "name": "persqueue-discover-clusters",
       "aliases": [],
-      "description": "Discover persqueue clusters",
+      "description": "Persqueue session clusters discovery",
       "visible": false,
       "subcommands": {
         "write-session": {
           "name": "write-session",
           "aliases": [],
-          "description": "Discover write session clusters",
+          "description": "Discover clusters for write session",
           "visible": true,
           "options": {
             "--topic": { "description": "Topic", "visible": true, "required": true },
@@ -947,7 +947,7 @@
         "read-session": {
           "name": "read-session",
           "aliases": [],
-          "description": "Discover read session clusters",
+          "description": "Discover clusters for read session",
           "visible": true,
           "options": {
             "--topic": { "description": "Topic", "visible": true, "required": true },
@@ -956,9 +956,7 @@
           }
         }
       },
-      "options": {
-        "-s|--server": { "description": "Server address to connect", "visible": true, "required": false }
-      }
+      "options": {}
     },
     "actorsys-perf-test": {
       "name": "actorsys-perf-test",
