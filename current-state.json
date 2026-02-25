@@ -1,7 +1,13 @@
 {
-  "version": "1.0",
+  "version": "1.3",
   "source": "ydbd source code (trunk)",
   "generatedAt": "2026-02-25",
+  "rootOptions": {
+    "-k|--token": { "description": "Security token", "visible": true, "required": false },
+    "-s|--server": { "description": "Server address to connect (HOST[:PORT])", "visible": true, "required": false },
+    "--allocator-info": { "description": "Print the name of allocator linked to the binary and exit", "visible": true, "required": false },
+    "--compatibility-info": { "description": "Print compatibility info of this binary and exit", "visible": true, "required": false }
+  },
   "commands": {
     "admin": {
       "name": "admin",
@@ -613,10 +619,42 @@
           "subcommands": {
             "mkdir": { "name": "mkdir", "aliases": [], "description": "Create directory", "visible": true, "options": {} },
             "drop": { "name": "drop", "aliases": [], "description": "Remove schema object", "visible": true, "options": {} },
-            "describe": { "name": "describe", "aliases": ["desc"], "description": "Describe schema object", "visible": true, "options": {} },
+            "describe": {
+                  "name": "describe",
+                  "aliases": ["desc"],
+                  "description": "Describe schema object",
+                  "visible": true,
+                  "options": {
+                    "-t|--tree": { "description": "Show schema path tree", "visible": true, "required": false },
+                    "-d|--details": { "description": "Show detailed information", "visible": true, "required": false },
+                    "-a|--acl": { "description": "Show owner and acl information", "visible": true, "required": false },
+                    "-e|--effacl": { "description": "Show effective acl information", "visible": true, "required": false },
+                    "-b|--backup": { "description": "Show backup information", "visible": true, "required": false },
+                    "-P|--protobuf": { "description": "Debug print all info as is", "visible": true, "required": false },
+                    "-s|--stats": { "description": "Return partition stats", "visible": true, "required": false },
+                    "--boundaries": { "description": "Return boundaries", "visible": true, "required": false }
+                  }
+                },
             "ls": { "name": "ls", "aliases": [], "description": "List path content", "visible": true, "options": {} },
-            "init": { "name": "init", "aliases": [], "description": "Initialize schema root", "visible": true, "options": {} },
-            "chown": { "name": "chown", "aliases": [], "description": "Change owner", "visible": true, "options": {} },
+            "init": {
+              "name": "init",
+              "aliases": [],
+              "description": "Initialize schema root",
+              "visible": true,
+              "options": {
+                "--pool": { "description": "Default storage pool", "visible": true, "required": false }
+              }
+            },
+            "chown": {
+                  "name": "chown",
+                  "aliases": [],
+                  "description": "Change owner",
+                  "visible": true,
+                  "options": {
+                    "-R|--recursive": { "description": "Change owner recursively", "visible": true, "required": false },
+                    "-v|--verbose": { "description": "Verbose output", "visible": true, "required": false }
+                  }
+                },
             "execute": { "name": "execute", "aliases": ["exec"], "description": "Execute schema protobuf", "visible": true, "options": { "-t|--txid": { "description": "Print TxId", "visible": true, "required": false } } },
             "access": {
               "name": "access",
@@ -638,7 +676,17 @@
               "visible": true,
               "subcommands": {
                 "options": { "name": "options", "aliases": [], "description": "Table options", "visible": true, "options": {} },
-                "copy": { "name": "copy", "aliases": [], "description": "Copy table", "visible": true, "options": {} }
+                "copy": {
+                  "name": "copy",
+                  "aliases": [],
+                  "description": "Copy table",
+                  "visible": true,
+                  "options": {
+                    "--database|--db": { "description": "Database name", "visible": true, "required": true },
+                    "--source|--src": { "description": "Source table path", "visible": true, "required": true },
+                    "--destination|--dst": { "description": "Destination table path", "visible": true, "required": true }
+                  }
+                }
               },
               "options": {}
             },
@@ -657,18 +705,44 @@
           },
           "options": {}
         },
-        "minikql": { "name": "minikql", "aliases": ["execute", "exec", "mkql"], "description": "Execute Mini-KQL", "visible": true, "options": {} }
+        "minikql": {
+          "name": "minikql",
+          "aliases": ["execute", "exec", "mkql"],
+          "description": "Execute Mini-KQL",
+          "visible": true,
+          "options": {
+            "-p|--proto": { "description": "MiniKQL parameters are in protobuf format", "visible": true, "required": false }
+          }
+        }
       },
       "options": {}
     },
-    "whoami": { "name": "whoami", "aliases": [], "description": "Who am I?", "visible": true, "options": {} },
+    "whoami": {
+      "name": "whoami",
+      "aliases": [],
+      "description": "Who am I?",
+      "visible": true,
+      "options": {
+        "-g|--groups": { "description": "Show groups", "visible": true, "required": false },
+        "-l|--access-list": { "description": "Show access list", "visible": true, "required": false },
+        "-a|--all": { "description": "Show all additional info (groups and access list)", "visible": true, "required": false }
+      }
+    },
     "discovery": {
       "name": "discovery",
       "aliases": [],
       "description": "Endpoint discovery",
       "visible": true,
       "subcommands": {
-        "list": { "name": "list", "aliases": [], "description": "List tenants", "visible": true, "options": {} }
+        "list": {
+          "name": "list",
+          "aliases": [],
+          "description": "List existing tenants",
+          "visible": true,
+          "options": {
+            "-d|--db": { "description": "Set target database", "visible": true, "required": false }
+          }
+        }
       },
       "options": {}
     },
@@ -863,11 +937,11 @@
           "description": "Discover write session clusters",
           "visible": true,
           "options": {
-            "--topic": { "description": "topic", "visible": true, "required": true },
-            "--source-id": { "description": "source id", "visible": true, "required": true },
-            "--partition-group": { "description": "partition group", "visible": true, "required": false },
-            "--preferred-cluster": { "description": "preferred cluster", "visible": true, "required": false },
-            "--verbose": { "description": "verbose output", "visible": true, "required": false }
+            "--topic": { "description": "Topic", "visible": true, "required": true },
+            "--source-id": { "description": "Source id", "visible": true, "required": true },
+            "--partition-group": { "description": "Partition group", "visible": true, "required": false },
+            "--preferred-cluster": { "description": "Prioritized cluster's name", "visible": true, "required": false },
+            "--verbose": { "description": "Output detailed information for debugging", "visible": true, "required": false }
           }
         },
         "read-session": {
@@ -876,13 +950,15 @@
           "description": "Discover read session clusters",
           "visible": true,
           "options": {
-            "--topic": { "description": "topic", "visible": true, "required": true },
-            "--mirror-to-cluster": { "description": "mirror cluster", "visible": true, "required": false },
-            "--verbose": { "description": "verbose output", "visible": true, "required": false }
+            "--topic": { "description": "Topic", "visible": true, "required": true },
+            "--mirror-to-cluster": { "description": "Do not set the option to enable all-original mode", "visible": true, "required": false },
+            "--verbose": { "description": "Output detailed information for debugging", "visible": true, "required": false }
           }
         }
       },
-      "options": {}
+      "options": {
+        "-s|--server": { "description": "Server address to connect", "visible": true, "required": false }
+      }
     },
     "actorsys-perf-test": {
       "name": "actorsys-perf-test",

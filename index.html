@@ -288,8 +288,9 @@
         }
 
         .field-value textarea {
-            min-height: 60px;
-            resize: vertical;
+            min-height: 40px;
+            resize: none;
+            overflow: hidden;
         }
 
         .field-current {
@@ -555,16 +556,32 @@ function loadFromLocalStorage() {
     const saved = localStorage.getItem('ydbd-cli-editor-my-changes');
     if (saved) {
         try {
-            MY_CHANGES = JSON.parse(saved);
+            const parsed = JSON.parse(saved);
+            // Check if saved changes are for the same version of current-state
+            if (parsed.basedOnVersion === CURRENT_STATE?.version) {
+                MY_CHANGES = parsed;
+            } else {
+                console.warn('Saved changes are for a different version, resetting');
+                MY_CHANGES = { changes: {}, comments: {}, basedOnVersion: CURRENT_STATE?.version };
+                saveToLocalStorage();
+            }
         } catch (e) {
             console.error('Failed to load from localStorage:', e);
         }
+    } else {
+        MY_CHANGES.basedOnVersion = CURRENT_STATE?.version;
     }
 }
 
 function saveToLocalStorage() {
+    MY_CHANGES.basedOnVersion = CURRENT_STATE?.version;
     localStorage.setItem('ydbd-cli-editor-my-changes', JSON.stringify(MY_CHANGES));
     rebuildChangesCache();
+}
+
+function autoResizeTextarea(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.max(40, textarea.scrollHeight) + 'px';
 }
 
 // ============================================================================
@@ -873,7 +890,7 @@ function selectCommand(path, cmd) {
 
 function renderRootDetails() {
     const container = document.getElementById('detailsContent');
-    container.innerHTML = `
+    let html = `
         <div class="details-header">
             <h2>ydbd</h2>
             <div class="details-path">Root command</div>
@@ -884,6 +901,31 @@ function renderRootDetails() {
             <p>Select a subcommand from the tree to view and edit its details.</p>
         </div>
     `;
+
+    if (CURRENT_STATE.rootOptions && Object.keys(CURRENT_STATE.rootOptions).length > 0) {
+        html += `
+            <div class="details-section">
+                <h3>Global Options (${Object.keys(CURRENT_STATE.rootOptions).length})</h3>
+                <div class="options-list">
+                    ${renderOptions('ydbd', CURRENT_STATE.rootOptions)}
+                </div>
+            </div>
+        `;
+    }
+
+    html += `
+        <div class="details-section">
+            <h3>Subcommands (${Object.keys(CURRENT_STATE.commands).length})</h3>
+            <ul style="margin-left: 20px; color: #666;">
+                ${Object.values(CURRENT_STATE.commands).map(cmd =>
+                    `<li><strong>${cmd.name}</strong>${cmd.aliases?.length ? ` (${cmd.aliases.join(', ')})` : ''} - ${cmd.description || '(no description)'}${!cmd.visible ? ' [hidden]' : ''}</li>`
+                ).join('')}
+            </ul>
+        </div>
+    `;
+
+    container.innerHTML = html;
+    document.querySelectorAll('.auto-resize').forEach(autoResizeTextarea);
 }
 
 function renderDetails(path, cmd) {
@@ -937,8 +979,8 @@ function renderDetails(path, cmd) {
             <div class="field-row">
                 <div class="field-label">Target:</div>
                 <div class="field-value">
-                    <input type="text" value="${escapeHtml(effectiveState.description)}"
-                           onchange="updateDescription('${escapedPath}', this.value)">
+                    <textarea class="auto-resize" onchange="updateDescription('${escapedPath}', this.value)"
+                              oninput="autoResizeTextarea(this)">${escapeHtml(effectiveState.description)}</textarea>
                     <button class="reset-btn" onclick="resetField('${escapedPath}', 'description')">Reset</button>
                 </div>
             </div>
@@ -949,8 +991,9 @@ function renderDetails(path, cmd) {
             <div class="field-row">
                 <div class="field-label"></div>
                 <div class="field-value">
-                    <textarea placeholder="Add a comment for discussion..."
-                              onchange="updateComment('${escapedPath}', this.value)">${escapeHtml(comment)}</textarea>
+                    <textarea class="auto-resize" placeholder="Add a comment for discussion..."
+                              onchange="updateComment('${escapedPath}', this.value)"
+                              oninput="autoResizeTextarea(this)">${escapeHtml(comment)}</textarea>
                 </div>
             </div>
         </div>
@@ -967,7 +1010,23 @@ function renderDetails(path, cmd) {
         `;
     }
 
+    if (cmd.subcommands && Object.keys(cmd.subcommands).length > 0) {
+        html += `
+            <div class="details-section">
+                <h3>Subcommands (${Object.keys(cmd.subcommands).length})</h3>
+                <ul style="margin-left: 20px; color: #666;">
+                    ${Object.values(cmd.subcommands).map(sub =>
+                        `<li><strong>${sub.name}</strong>${sub.aliases?.length ? ` (${sub.aliases.join(', ')})` : ''} - ${sub.description || '(no description)'}</li>`
+                    ).join('')}
+                </ul>
+            </div>
+        `;
+    }
+
     container.innerHTML = html;
+
+    // Auto-resize textareas after rendering
+    document.querySelectorAll('.auto-resize').forEach(autoResizeTextarea);
 }
 
 function renderOptions(cmdPath, options) {
@@ -1023,16 +1082,17 @@ function renderOptions(cmdPath, options) {
                     <div class="field-row">
                         <div class="field-label">Target desc:</div>
                         <div class="field-value">
-                            <input type="text" value="${escapeHtml(effectiveOpt.description)}"
-                                   onchange="updateOptionDescription('${escapedOptPath}', this.value)">
+                            <textarea class="auto-resize" onchange="updateOptionDescription('${escapedOptPath}', this.value)"
+                                      oninput="autoResizeTextarea(this)">${escapeHtml(effectiveOpt.description)}</textarea>
                             <button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'description')">Reset</button>
                         </div>
                     </div>
                     <div class="field-row">
                         <div class="field-label">Comment:</div>
                         <div class="field-value">
-                            <textarea placeholder="Add a comment..."
-                                      onchange="updateComment('${escapedOptPath}', this.value)">${escapeHtml(optComment)}</textarea>
+                            <textarea class="auto-resize" placeholder="Add a comment..."
+                                      onchange="updateComment('${escapedOptPath}', this.value)"
+                                      oninput="autoResizeTextarea(this)">${escapeHtml(optComment)}</textarea>
                         </div>
                     </div>
                 </div>
@@ -1071,6 +1131,10 @@ function hasLocalOptionChange(path) {
 function toggleOption(header) {
     const details = header.nextElementSibling;
     details.classList.toggle('expanded');
+    // Auto-resize textareas when expanded
+    if (details.classList.contains('expanded')) {
+        details.querySelectorAll('.auto-resize').forEach(autoResizeTextarea);
+    }
 }
 
 // ============================================================================
@@ -1139,13 +1203,22 @@ function updateComment(path, comment) {
     renderTree();
 }
 
-function updateOptionVisibility(path, visible) {
-    // Get original option
+function getOptionByPath(path) {
     const parts = path.split('.');
     const optName = parts.pop();
     const cmdPath = parts.join('.');
+
+    // Handle root options
+    if (cmdPath === 'ydbd') {
+        return CURRENT_STATE.rootOptions?.[optName];
+    }
+
     const cmd = getCommandByPath(cmdPath);
-    const opt = cmd?.options?.[optName];
+    return cmd?.options?.[optName];
+}
+
+function updateOptionVisibility(path, visible) {
+    const opt = getOptionByPath(path);
     if (!opt) return;
 
     const originalVisible = opt.visible;
@@ -1174,11 +1247,7 @@ function updateOptionVisibility(path, visible) {
 }
 
 function updateOptionDescription(path, description) {
-    const parts = path.split('.');
-    const optName = parts.pop();
-    const cmdPath = parts.join('.');
-    const cmd = getCommandByPath(cmdPath);
-    const opt = cmd?.options?.[optName];
+    const opt = getOptionByPath(path);
     if (!opt) return;
 
     const originalDesc = opt.description;
