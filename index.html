@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YDBD CLI Help Editor</title>
+    <style>
+        :root {
+            --bg-visible-to-hidden: #f8d7da;
+            --bg-hidden-to-visible: #d4edda;
+            --bg-modified: #fff3cd;
+            --bg-my-changes: #cce5ff;
+            --text-hidden: #6c757d;
+            --text-visible: #212529;
+            --border-my-changes: #004085;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .header {
+            background: #343a40;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: 50px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-buttons button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-primary { background: #007bff; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-danger { background: #dc3545; color: white; }
+        button:hover { opacity: 0.9; }
+
+        .main {
+            display: flex;
+            margin-top: 50px;
+            height: calc(100vh - 50px);
+            width: 100%;
+        }
+
+        .tree-panel {
+            width: 45%;
+            background: white;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .tree-controls {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .tree-controls input[type="text"] {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        .tree-controls select {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .tree-controls label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .tree-item {
+            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .tree-item-row {
+            display: flex;
+            align-items: center;
+            padding: 3px 5px;
+            border-radius: 3px;
+        }
+
+        .tree-item-row:hover { background: #f0f0f0; }
+        .tree-item-row.selected { background: #e3f2fd; }
+        .tree-item-row.hidden-cmd { color: var(--text-hidden); font-style: italic; }
+        .tree-item-row.change-visible { background: var(--bg-hidden-to-visible); }
+        .tree-item-row.change-hidden { background: var(--bg-visible-to-hidden); }
+        .tree-item-row.change-modified { background: var(--bg-modified); }
+        .tree-item-row.my-change { border: 2px solid var(--border-my-changes); }
+
+        .tree-prefix { white-space: pre; color: #999; }
+        .tree-toggle { width: 16px; text-align: center; color: #666; }
+        .tree-name { margin-left: 4px; }
+        .tree-aliases { color: #888; font-size: 12px; margin-left: 4px; }
+        .tree-badges { margin-left: auto; display: flex; gap: 4px; }
+
+        .badge {
+            font-size: 10px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+        .badge-hidden { background: #6c757d; color: white; }
+        .badge-changed { background: #ffc107; color: #212529; }
+
+        .tree-children { margin-left: 20px; }
+        .tree-children.collapsed { display: none; }
+
+        .details-panel {
+            width: 55%;
+            background: #fafafa;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .details-empty {
+            text-align: center;
+            color: #888;
+            padding: 40px;
+        }
+
+        .details-header {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .details-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .details-path { color: #666; font-size: 13px; }
+
+        .details-section {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .details-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .field-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .field-label {
+            width: 140px;
+            font-weight: 500;
+            color: #666;
+            padding-top: 6px;
+        }
+
+        .field-value { flex: 1; }
+
+        .field-value input[type="text"],
+        .field-value textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .field-value textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .field-current {
+            background: #f8f9fa;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .visibility-toggle {
+            display: flex;
+            gap: 15px;
+        }
+
+        .visibility-toggle label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .reset-btn {
+            font-size: 11px;
+            padding: 2px 8px;
+            margin-left: 10px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .reset-btn:hover { background: #e0e0e0; }
+
+        .options-list { margin-top: 10px; }
+
+        .option-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .option-header {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            cursor: pointer;
+        }
+        .option-header:hover { background: #f0f0f0; }
+        .option-header.hidden-opt { color: var(--text-hidden); }
+        .option-header.change-visible { background: var(--bg-hidden-to-visible); }
+        .option-header.change-hidden { background: var(--bg-visible-to-hidden); }
+        .option-header.change-modified { background: var(--bg-modified); }
+
+        .option-name { font-family: 'SF Mono', 'Consolas', monospace; font-weight: 500; }
+        .option-desc-preview {
+            color: #666;
+            margin-left: 10px;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .option-details {
+            padding: 12px;
+            border-top: 1px solid #e0e0e0;
+            display: none;
+        }
+        .option-details.expanded { display: block; }
+
+        .stats-bar {
+            background: #e9ecef;
+            padding: 8px 15px;
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item { display: flex; align-items: center; gap: 5px; }
+        .stat-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .stat-dot.visible { background: #28a745; }
+        .stat-dot.hidden { background: #6c757d; }
+        .stat-dot.changed { background: #ffc107; }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            padding: 8px 15px;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            font-size: 12px;
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .legend-color { width: 16px; height: 16px; border-radius: 3px; }
+        .legend-color.will-show { background: var(--bg-hidden-to-visible); }
+        .legend-color.will-hide { background: var(--bg-visible-to-hidden); }
+        .legend-color.modified { background: var(--bg-modified); }
+        .legend-color.my-change { border: 2px solid var(--border-my-changes); background: white; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 500px;
+            width: 90%;
+        }
+        .modal h3 { margin-bottom: 15px; }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>YDBD CLI Help Editor</h1>
+        <div class="header-buttons">
+            <button class="btn-secondary" onclick="resetMyChanges()">Reset My Changes</button>
+            <button class="btn-warning" onclick="resetAllToOriginal()">Reset All to Original</button>
+            <button class="btn-primary" onclick="exportChanges()">Export My Changes</button>
+            <button class="btn-secondary" onclick="document.getElementById('importFile').click()">Import Changes</button>
+            <input type="file" id="importFile" style="display:none" accept=".json" onchange="importChanges(event)">
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="tree-panel">
+            <div class="legend">
+                <div class="legend-item"><div class="legend-color will-show"></div> Will become visible</div>
+                <div class="legend-item"><div class="legend-color will-hide"></div> Will become hidden</div>
+                <div class="legend-item"><div class="legend-color modified"></div> Description changed</div>
+                <div class="legend-item"><div class="legend-color my-change"></div> My local change</div>
+            </div>
+            <div class="tree-controls">
+                <input type="text" id="searchInput" placeholder="Search commands..." oninput="filterTree()">
+                <select id="visibilityFilter" onchange="filterTree()">
+                    <option value="all">All commands</option>
+                    <option value="visible">Visible only</option>
+                    <option value="hidden">Hidden only</option>
+                    <option value="changed">Changed only</option>
+                </select>
+                <label>
+                    <input type="checkbox" id="expandAll" onchange="toggleExpandAll()">
+                    Expand all
+                </label>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item"><span class="stat-dot visible"></span> Visible: <span id="statVisible">0</span></div>
+                <div class="stat-item"><span class="stat-dot hidden"></span> Hidden: <span id="statHidden">0</span></div>
+                <div class="stat-item"><span class="stat-dot changed"></span> Changed: <span id="statChanged">0</span></div>
+            </div>
+            <div id="treeContainer">
+                <div class="loading">Loading data...</div>
+            </div>
+        </div>
+
+        <div class="details-panel">
+            <div id="detailsContent">
+                <div class="details-empty">
+                    Select a command from the tree to view and edit its details
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal">
+            <h3 id="modalTitle">Confirm</h3>
+            <p id="modalMessage"></p>
+            <div class="modal-buttons">
+                <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn-danger" id="modalConfirmBtn" onclick="confirmModalAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+// ============================================================================
+// Data loaded from external JSON files
+// ============================================================================
+let CURRENT_STATE = null;
+let GLOBAL_TARGET = null;
+let MY_CHANGES = { changes: {}, comments: {} };
+
+// ============================================================================
+// State
+// ============================================================================
+let selectedPath = null;
+let expandedNodes = new Set(['']);
+let modalCallback = null;
+
+// ============================================================================
+// Initialization
+// ============================================================================
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        await loadData();
+        loadFromLocalStorage();
+        renderTree();
+        updateStats();
+    } catch (err) {
+        document.getElementById('treeContainer').innerHTML =
+            `<div class="error">Failed to load data: ${err.message}<br><br>
+             Make sure you're running this from a web server, not directly from file://</div>`;
+    }
+});
+
+async function loadData() {
+    const [currentRes, targetRes] = await Promise.all([
+        fetch('current-state.json'),
+        fetch('target-state.json')
+    ]);
+
+    if (!currentRes.ok) throw new Error('Failed to load current-state.json');
+    if (!targetRes.ok) throw new Error('Failed to load target-state.json');
+
+    CURRENT_STATE = await currentRes.json();
+    GLOBAL_TARGET = await targetRes.json();
+}
+
+function loadFromLocalStorage() {
+    const saved = localStorage.getItem('ydbd-cli-editor-my-changes');
+    if (saved) {
+        try {
+            MY_CHANGES = JSON.parse(saved);
+        } catch (e) {
+            console.error('Failed to load from localStorage:', e);
+        }
+    }
+}
+
+function saveToLocalStorage() {
+    localStorage.setItem('ydbd-cli-editor-my-changes', JSON.stringify(MY_CHANGES));
+}
+
+// ============================================================================
+// Tree rendering
+// ============================================================================
+function renderTree() {
+    if (!CURRENT_STATE) return;
+
+    const container = document.getElementById('treeContainer');
+    container.innerHTML = '';
+
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const visFilter = document.getElementById('visibilityFilter').value;
+
+    function renderCommand(cmd, path, prefix, isLast) {
+        const fullPath = path ? `${path}.${cmd.name}` : cmd.name;
+        const effectiveState = getEffectiveState(fullPath, cmd);
+        const changeType = getChangeType(fullPath, cmd, effectiveState);
+        const hasMyChange = hasLocalChange(fullPath);
+
+        if (searchTerm && !fullPath.toLowerCase().includes(searchTerm) &&
+            !cmd.description.toLowerCase().includes(searchTerm)) {
+            const hasMatchingChild = cmd.subcommands && Object.values(cmd.subcommands).some(sub =>
+                matchesSearch(sub, `${fullPath}.${sub.name}`, searchTerm)
+            );
+            if (!hasMatchingChild) return null;
+        }
+
+        if (visFilter === 'visible' && !effectiveState.visible) return null;
+        if (visFilter === 'hidden' && effectiveState.visible) return null;
+        if (visFilter === 'changed' && !changeType && !hasMyChange) return null;
+
+        const item = document.createElement('div');
+        item.className = 'tree-item';
+
+        const row = document.createElement('div');
+        row.className = 'tree-item-row';
+        if (!effectiveState.visible) row.classList.add('hidden-cmd');
+        if (changeType === 'visible') row.classList.add('change-visible');
+        if (changeType === 'hidden') row.classList.add('change-hidden');
+        if (changeType === 'modified') row.classList.add('change-modified');
+        if (hasMyChange) row.classList.add('my-change');
+        if (fullPath === selectedPath) row.classList.add('selected');
+
+        const prefixSpan = document.createElement('span');
+        prefixSpan.className = 'tree-prefix';
+        prefixSpan.textContent = prefix;
+        row.appendChild(prefixSpan);
+
+        const hasChildren = cmd.subcommands && Object.keys(cmd.subcommands).length > 0;
+        const toggle = document.createElement('span');
+        toggle.className = 'tree-toggle';
+        if (hasChildren) {
+            toggle.textContent = expandedNodes.has(fullPath) ? '▼' : '▶';
+            toggle.onclick = (e) => {
+                e.stopPropagation();
+                if (expandedNodes.has(fullPath)) {
+                    expandedNodes.delete(fullPath);
+                } else {
+                    expandedNodes.add(fullPath);
+                }
+                renderTree();
+            };
+        }
+        row.appendChild(toggle);
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'tree-name';
+        nameSpan.textContent = cmd.name;
+        row.appendChild(nameSpan);
+
+        if (cmd.aliases && cmd.aliases.length > 0) {
+            const aliasSpan = document.createElement('span');
+            aliasSpan.className = 'tree-aliases';
+            aliasSpan.textContent = `(${cmd.aliases.join(', ')})`;
+            row.appendChild(aliasSpan);
+        }
+
+        const badges = document.createElement('span');
+        badges.className = 'tree-badges';
+        if (!cmd.visible) {
+            const badge = document.createElement('span');
+            badge.className = 'badge badge-hidden';
+            badge.textContent = 'hidden';
+            badges.appendChild(badge);
+        }
+        if (changeType || hasMyChange) {
+            const badge = document.createElement('span');
+            badge.className = 'badge badge-changed';
+            badge.textContent = hasMyChange ? 'my edit' : 'changed';
+            badges.appendChild(badge);
+        }
+        row.appendChild(badges);
+
+        row.onclick = () => selectCommand(fullPath, cmd);
+        item.appendChild(row);
+
+        if (hasChildren) {
+            const children = document.createElement('div');
+            children.className = 'tree-children';
+            if (!expandedNodes.has(fullPath)) children.classList.add('collapsed');
+
+            const subCmds = Object.values(cmd.subcommands);
+            subCmds.forEach((sub, i) => {
+                const childPrefix = prefix + (isLast ? '   ' : '│  ');
+                const childIsLast = i === subCmds.length - 1;
+                const childNode = renderCommand(sub, fullPath, childPrefix + (childIsLast ? '└─ ' : '├─ '), childIsLast);
+                if (childNode) children.appendChild(childNode);
+            });
+
+            item.appendChild(children);
+        }
+
+        return item;
+    }
+
+    const commands = Object.values(CURRENT_STATE.commands);
+    commands.forEach((cmd, i) => {
+        const isLast = i === commands.length - 1;
+        const node = renderCommand(cmd, '', isLast ? '└─ ' : '├─ ', isLast);
+        if (node) container.appendChild(node);
+    });
+}
+
+function matchesSearch(cmd, path, searchTerm) {
+    if (path.toLowerCase().includes(searchTerm)) return true;
+    if (cmd.description.toLowerCase().includes(searchTerm)) return true;
+    if (cmd.subcommands) {
+        return Object.values(cmd.subcommands).some(sub =>
+            matchesSearch(sub, `${path}.${sub.name}`, searchTerm)
+        );
+    }
+    return false;
+}
+
+// ============================================================================
+// State management
+// ============================================================================
+function getCommandByPath(path) {
+    if (!CURRENT_STATE) return null;
+    const parts = path.split('.');
+    let cmd = CURRENT_STATE.commands[parts[0]];
+    for (let i = 1; i < parts.length && cmd; i++) {
+        cmd = cmd.subcommands?.[parts[i]];
+    }
+    return cmd;
+}
+
+function getEffectiveState(path, cmd) {
+    const myChange = MY_CHANGES.changes[path];
+    const globalChange = GLOBAL_TARGET?.changes?.[path];
+
+    return {
+        visible: myChange?.visible ?? globalChange?.visible ?? cmd.visible,
+        description: myChange?.description ?? globalChange?.description ?? cmd.description
+    };
+}
+
+function getChangeType(path, cmd, effectiveState) {
+    if (cmd.visible !== effectiveState.visible) {
+        return effectiveState.visible ? 'visible' : 'hidden';
+    }
+    if (cmd.description !== effectiveState.description) {
+        return 'modified';
+    }
+    return null;
+}
+
+function hasLocalChange(path) {
+    return MY_CHANGES.changes[path] !== undefined || MY_CHANGES.comments[path] !== undefined;
+}
+
+function getEffectiveComment(path) {
+    return MY_CHANGES.comments[path] ?? GLOBAL_TARGET?.comments?.[path] ?? '';
+}
+
+// ============================================================================
+// Details panel
+// ============================================================================
+function selectCommand(path, cmd) {
+    selectedPath = path;
+    renderTree();
+    renderDetails(path, cmd);
+}
+
+function renderDetails(path, cmd) {
+    const container = document.getElementById('detailsContent');
+    const effectiveState = getEffectiveState(path, cmd);
+    const comment = getEffectiveComment(path);
+
+    let html = `
+        <div class="details-header">
+            <h2>${cmd.name}</h2>
+            <div class="details-path">${path}</div>
+        </div>
+
+        <div class="details-section">
+            <h3>Visibility</h3>
+            <div class="field-row">
+                <div class="field-label">Current:</div>
+                <div class="field-value">
+                    <span class="field-current">${cmd.visible ? 'Visible' : 'Hidden'}</span>
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Target:</div>
+                <div class="field-value">
+                    <div class="visibility-toggle">
+                        <label>
+                            <input type="radio" name="visibility" value="true" ${effectiveState.visible ? 'checked' : ''}
+                                   onchange="updateVisibility('${path}', true)">
+                            Visible
+                        </label>
+                        <label>
+                            <input type="radio" name="visibility" value="false" ${!effectiveState.visible ? 'checked' : ''}
+                                   onchange="updateVisibility('${path}', false)">
+                            Hidden
+                        </label>
+                        <button class="reset-btn" onclick="resetField('${path}', 'visible')">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="details-section">
+            <h3>Description</h3>
+            <div class="field-row">
+                <div class="field-label">Current:</div>
+                <div class="field-value">
+                    <div class="field-current">${cmd.description || '(empty)'}</div>
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Target:</div>
+                <div class="field-value">
+                    <input type="text" value="${escapeHtml(effectiveState.description)}"
+                           onchange="updateDescription('${path}', this.value)">
+                    <button class="reset-btn" onclick="resetField('${path}', 'description')">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="details-section">
+            <h3>Comment</h3>
+            <div class="field-row">
+                <div class="field-label"></div>
+                <div class="field-value">
+                    <textarea placeholder="Add a comment for discussion..."
+                              onchange="updateComment('${path}', this.value)">${escapeHtml(comment)}</textarea>
+                </div>
+            </div>
+        </div>
+    `;
+
+    if (cmd.options && Object.keys(cmd.options).length > 0) {
+        html += `
+            <div class="details-section">
+                <h3>Options</h3>
+                <div class="options-list">
+                    ${renderOptions(path, cmd.options)}
+                </div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
+}
+
+function renderOptions(cmdPath, options) {
+    return Object.entries(options).map(([name, opt]) => {
+        const optPath = `${cmdPath}.${name}`;
+        const effectiveOpt = getEffectiveOptionState(optPath, opt);
+        const changeType = getOptionChangeType(opt, effectiveOpt);
+        const hasMyChange = hasLocalChange(optPath);
+
+        let classes = 'option-header';
+        if (!effectiveOpt.visible) classes += ' hidden-opt';
+        if (changeType === 'visible') classes += ' change-visible';
+        if (changeType === 'hidden') classes += ' change-hidden';
+        if (changeType === 'modified') classes += ' change-modified';
+
+        return `
+            <div class="option-item">
+                <div class="${classes}" onclick="toggleOption(this)">
+                    <span class="option-name">${name}</span>
+                    <span class="option-desc-preview">${opt.description}</span>
+                    ${opt.required ? '<span class="badge badge-hidden">required</span>' : ''}
+                    ${hasMyChange ? '<span class="badge badge-changed">my edit</span>' : ''}
+                </div>
+                <div class="option-details">
+                    <div class="field-row">
+                        <div class="field-label">Visibility:</div>
+                        <div class="field-value">
+                            <div class="visibility-toggle">
+                                <label>
+                                    <input type="radio" name="opt-vis-${name.replace(/[^a-zA-Z0-9]/g, '_')}" value="true" ${effectiveOpt.visible ? 'checked' : ''}
+                                           onchange="updateOptionVisibility('${optPath}', true)">
+                                    Visible
+                                </label>
+                                <label>
+                                    <input type="radio" name="opt-vis-${name.replace(/[^a-zA-Z0-9]/g, '_')}" value="false" ${!effectiveOpt.visible ? 'checked' : ''}
+                                           onchange="updateOptionVisibility('${optPath}', false)">
+                                    Hidden
+                                </label>
+                                <button class="reset-btn" onclick="resetField('${optPath}', 'visible')">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-label">Description:</div>
+                        <div class="field-value">
+                            <input type="text" value="${escapeHtml(effectiveOpt.description)}"
+                                   onchange="updateOptionDescription('${optPath}', this.value)">
+                            <button class="reset-btn" onclick="resetField('${optPath}', 'description')">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function getEffectiveOptionState(path, opt) {
+    const myChange = MY_CHANGES.changes[path];
+    const globalChange = GLOBAL_TARGET?.changes?.[path];
+
+    return {
+        visible: myChange?.visible ?? globalChange?.visible ?? opt.visible,
+        description: myChange?.description ?? globalChange?.description ?? opt.description
+    };
+}
+
+function getOptionChangeType(opt, effectiveOpt) {
+    if (opt.visible !== effectiveOpt.visible) {
+        return effectiveOpt.visible ? 'visible' : 'hidden';
+    }
+    if (opt.description !== effectiveOpt.description) {
+        return 'modified';
+    }
+    return null;
+}
+
+function toggleOption(header) {
+    const details = header.nextElementSibling;
+    details.classList.toggle('expanded');
+}
+
+// ============================================================================
+// Updates
+// ============================================================================
+function updateVisibility(path, visible) {
+    const cmd = getCommandByPath(path);
+    if (cmd.visible === visible) {
+        delete MY_CHANGES.changes[path]?.visible;
+        if (MY_CHANGES.changes[path] && Object.keys(MY_CHANGES.changes[path]).length === 0) {
+            delete MY_CHANGES.changes[path];
+        }
+    } else {
+        MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
+        MY_CHANGES.changes[path].visible = visible;
+    }
+    saveToLocalStorage();
+    renderTree();
+    updateStats();
+}
+
+function updateDescription(path, description) {
+    const cmd = getCommandByPath(path);
+    if (cmd.description === description) {
+        delete MY_CHANGES.changes[path]?.description;
+        if (MY_CHANGES.changes[path] && Object.keys(MY_CHANGES.changes[path]).length === 0) {
+            delete MY_CHANGES.changes[path];
+        }
+    } else {
+        MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
+        MY_CHANGES.changes[path].description = description;
+    }
+    saveToLocalStorage();
+    renderTree();
+    updateStats();
+}
+
+function updateComment(path, comment) {
+    if (comment.trim()) {
+        MY_CHANGES.comments[path] = comment;
+    } else {
+        delete MY_CHANGES.comments[path];
+    }
+    saveToLocalStorage();
+}
+
+function updateOptionVisibility(path, visible) {
+    MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
+    MY_CHANGES.changes[path].visible = visible;
+    saveToLocalStorage();
+    if (selectedPath) {
+        const cmd = getCommandByPath(selectedPath);
+        renderDetails(selectedPath, cmd);
+    }
+    updateStats();
+}
+
+function updateOptionDescription(path, description) {
+    MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
+    MY_CHANGES.changes[path].description = description;
+    saveToLocalStorage();
+    updateStats();
+}
+
+function resetField(path, field) {
+    if (MY_CHANGES.changes[path]) {
+        delete MY_CHANGES.changes[path][field];
+        if (Object.keys(MY_CHANGES.changes[path]).length === 0) {
+            delete MY_CHANGES.changes[path];
+        }
+    }
+    saveToLocalStorage();
+    renderTree();
+    if (selectedPath) {
+        const cmd = getCommandByPath(selectedPath);
+        renderDetails(selectedPath, cmd);
+    }
+    updateStats();
+}
+
+// ============================================================================
+// Global actions
+// ============================================================================
+function resetMyChanges() {
+    showModal('Reset My Changes', 'Are you sure you want to reset all your local changes?', () => {
+        MY_CHANGES = { changes: {}, comments: {} };
+        saveToLocalStorage();
+        renderTree();
+        if (selectedPath) {
+            const cmd = getCommandByPath(selectedPath);
+            renderDetails(selectedPath, cmd);
+        }
+        updateStats();
+    });
+}
+
+function resetAllToOriginal() {
+    showModal('Reset All to Original', 'This will reset your local changes to match the global target. Are you sure?', () => {
+        MY_CHANGES = { changes: {}, comments: {} };
+        saveToLocalStorage();
+        renderTree();
+        if (selectedPath) {
+            const cmd = getCommandByPath(selectedPath);
+            renderDetails(selectedPath, cmd);
+        }
+        updateStats();
+    });
+}
+
+function exportChanges() {
+    const exportData = {
+        version: "1.0",
+        exportedAt: new Date().toISOString(),
+        basedOnTarget: GLOBAL_TARGET?.version || "1.0",
+        changes: MY_CHANGES.changes,
+        comments: MY_CHANGES.comments
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ydbd-cli-changes-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function importChanges(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (data.changes) {
+                MY_CHANGES = {
+                    changes: data.changes || {},
+                    comments: data.comments || {}
+                };
+            }
+            saveToLocalStorage();
+            renderTree();
+            if (selectedPath) {
+                const cmd = getCommandByPath(selectedPath);
+                renderDetails(selectedPath, cmd);
+            }
+            updateStats();
+            alert('Changes imported successfully!');
+        } catch (err) {
+            alert('Failed to import: ' + err.message);
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+// ============================================================================
+// UI helpers
+// ============================================================================
+function filterTree() {
+    renderTree();
+}
+
+function toggleExpandAll() {
+    const expandAll = document.getElementById('expandAll').checked;
+    if (expandAll) {
+        function addAllPaths(commands, prefix) {
+            Object.entries(commands).forEach(([name, cmd]) => {
+                const path = prefix ? `${prefix}.${name}` : name;
+                expandedNodes.add(path);
+                if (cmd.subcommands) {
+                    addAllPaths(cmd.subcommands, path);
+                }
+            });
+        }
+        addAllPaths(CURRENT_STATE.commands, '');
+    } else {
+        expandedNodes.clear();
+        expandedNodes.add('');
+    }
+    renderTree();
+}
+
+function updateStats() {
+    if (!CURRENT_STATE) return;
+
+    let visible = 0, hidden = 0, changed = 0;
+
+    function countCommands(commands, prefix) {
+        Object.entries(commands).forEach(([name, cmd]) => {
+            const path = prefix ? `${prefix}.${name}` : name;
+            const effectiveState = getEffectiveState(path, cmd);
+
+            if (effectiveState.visible) visible++;
+            else hidden++;
+
+            if (getChangeType(path, cmd, effectiveState) || hasLocalChange(path)) {
+                changed++;
+            }
+
+            if (cmd.subcommands) {
+                countCommands(cmd.subcommands, path);
+            }
+        });
+    }
+
+    countCommands(CURRENT_STATE.commands, '');
+
+    document.getElementById('statVisible').textContent = visible;
+    document.getElementById('statHidden').textContent = hidden;
+    document.getElementById('statChanged').textContent = changed;
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function showModal(title, message, callback) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalMessage').textContent = message;
+    modalCallback = callback;
+    document.getElementById('confirmModal').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('confirmModal').classList.remove('active');
+    modalCallback = null;
+}
+
+function confirmModalAction() {
+    if (modalCallback) modalCallback();
+    closeModal();
+}
+    </script>
+</body>
+</html>

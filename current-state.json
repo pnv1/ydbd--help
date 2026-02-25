@@ -1,0 +1,530 @@
+{
+  "version": "1.0",
+  "source": "ydbd source code (trunk)",
+  "generatedAt": "2026-02-25",
+  "commands": {
+    "admin": {
+      "name": "admin",
+      "aliases": [],
+      "description": "YDB management and administration",
+      "visible": true,
+      "subcommands": {
+        "tablet": {
+          "name": "tablet",
+          "aliases": [],
+          "description": "Tablet infrastructure administration",
+          "visible": true,
+          "subcommands": {
+            "#": {
+              "name": "#",
+              "aliases": [],
+              "description": "<tablet id>",
+              "visible": true,
+              "subcommands": {
+                "execute": {
+                  "name": "execute",
+                  "aliases": ["exec"],
+                  "description": "",
+                  "visible": true,
+                  "options": {
+                    "--dry-run": { "description": "test changes without applying", "visible": true }
+                  }
+                },
+                "kill": {
+                  "name": "kill",
+                  "aliases": [],
+                  "description": "",
+                  "visible": true,
+                  "options": {}
+                },
+                "scheme-tx": {
+                  "name": "scheme-tx",
+                  "aliases": ["scheme"],
+                  "description": "",
+                  "visible": true,
+                  "options": {
+                    "--dry-run": { "description": "test changes without applying", "visible": true },
+                    "--print-schema": { "description": "print the resulting schema", "visible": true }
+                  }
+                }
+              }
+            },
+            "drain": {
+              "name": "drain",
+              "aliases": [],
+              "description": "Drain node",
+              "visible": true,
+              "options": {}
+            },
+            "fill": {
+              "name": "fill",
+              "aliases": [],
+              "description": "Fill node",
+              "visible": true,
+              "options": {}
+            }
+          }
+        },
+        "node": {
+          "name": "node",
+          "aliases": [],
+          "description": "Nodes infrastructure administration",
+          "visible": true,
+          "subcommands": {
+            "*": {
+              "name": "*",
+              "aliases": [],
+              "description": "<node id or hostname>",
+              "visible": true,
+              "subcommands": {
+                "drain": { "name": "drain", "aliases": [], "description": "Drain node", "visible": true, "options": {} },
+                "fill": { "name": "fill", "aliases": [], "description": "Fill node", "visible": true, "options": {} }
+              }
+            }
+          }
+        },
+        "debug": {
+          "name": "debug",
+          "aliases": [],
+          "description": "",
+          "visible": true,
+          "subcommands": {
+            "interconnect": {
+              "name": "interconnect",
+              "aliases": ["ic"],
+              "description": "Interconnect debugging facilities",
+              "visible": true,
+              "subcommands": {
+                "load": {
+                  "name": "load",
+                  "aliases": [],
+                  "description": "Initiate load actor on Interconnect",
+                  "visible": true,
+                  "options": {
+                    "--name": { "description": "load name to distinguish between several load processes", "visible": true },
+                    "--channel": { "description": "Interconnect channel number", "visible": true },
+                    "--hops": { "description": "comma-separated list of node ids making up packet route", "visible": true, "required": true },
+                    "--size-min": { "description": "minimal size of payload", "visible": true },
+                    "--size-max": { "description": "maximal size of payload", "visible": true },
+                    "--infly": { "description": "maximal number of unanswered packets", "visible": true, "required": true },
+                    "--interval-min": { "description": "minimal interval between messages", "visible": true },
+                    "--interval-max": { "description": "maximal interval between messages", "visible": true },
+                    "--soft": { "description": "enable soft load", "visible": true },
+                    "--rope": { "description": "use ropes for payload instead of protobuf", "visible": true },
+                    "--duration": { "description": "test duration", "visible": true, "required": true },
+                    "--service-pool": { "description": "service pool name", "visible": true },
+                    "--rdma-mode": { "description": "rdma mode for data transfer (0 - disabled; 1 - use rdma)", "visible": true },
+                    "--num": { "description": "number of load actors", "visible": true }
+                  }
+                },
+                "closepeersocket": { "name": "closepeersocket", "aliases": [], "description": "Close peer socket on existing session", "visible": true, "options": { "--node": { "description": "peer node id to close socket for", "visible": true, "required": true } } },
+                "closeinputsession": { "name": "closeinputsession", "aliases": [], "description": "Terminate input session", "visible": true, "options": { "--node": { "description": "peer node id to close input session for", "visible": true, "required": true } } },
+                "poisonsession": { "name": "poisonsession", "aliases": [], "description": "Poison session", "visible": true, "options": { "--node": { "description": "peer node id to poison session for", "visible": true, "required": true } } },
+                "slowpoke": {
+                  "name": "slowpoke",
+                  "aliases": [],
+                  "description": "Make actor system work a bit worse",
+                  "visible": true,
+                  "options": {
+                    "--num-actors": { "description": "number of actors to spawn", "visible": true, "required": true },
+                    "--pool-id": { "description": "pool id to spawn actors within", "visible": true, "required": true },
+                    "--duration": { "description": "test duration", "visible": true, "required": true },
+                    "--sleep-min": { "description": "min uniform interval for event processing", "visible": true, "required": true },
+                    "--sleep-max": { "description": "max uniform interval for event processing", "visible": true, "required": true },
+                    "--reschedule-min": { "description": "min uniform interval between events", "visible": true, "required": true },
+                    "--reschedule-max": { "description": "max uniform interval between events", "visible": true, "required": true }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "blobstorage": {
+          "name": "blobstorage",
+          "aliases": ["bs"],
+          "description": "Blob Storage management",
+          "visible": true,
+          "subcommands": {
+            "disk": {
+              "name": "disk",
+              "aliases": [],
+              "description": "Disk management",
+              "visible": true,
+              "subcommands": {
+                "info": {
+                  "name": "info",
+                  "aliases": [],
+                  "description": "Get info about disk",
+                  "visible": true,
+                  "options": {
+                    "-k|--main-key": { "description": "encryption main-key to use while reading", "visible": true },
+                    "--master-key": { "description": "obsolete: use main-key", "visible": true },
+                    "-v|--verbose": { "description": "output detailed information for debugging", "visible": true },
+                    "-l|--lock": { "description": "lock device before reading disk info", "visible": true }
+                  }
+                },
+                "format": {
+                  "name": "format",
+                  "aliases": [],
+                  "description": "Format local disk",
+                  "visible": true,
+                  "options": {
+                    "-d|--disk-size": { "description": "disk size to set (supports K/M/G/T suffixes)", "visible": true },
+                    "-c|--chunk-size": { "description": "chunk size to set (default = 128M)", "visible": true },
+                    "-s|--sector-size": { "description": "sector size to set (default = 4k)", "visible": true },
+                    "-g|--guid": { "description": "guid to set while formatting", "visible": true, "required": true },
+                    "-k|--main-key": { "description": "encryption main-key to set while formatting", "visible": true },
+                    "--master-key": { "description": "obsolete: user main-key", "visible": true },
+                    "-t|--text-message": { "description": "text message to store in format sector", "visible": true },
+                    "-e|--erasure-encode": { "description": "erasure-encode data to recover from single-sector failures", "visible": true }
+                  }
+                },
+                "obliterate": {
+                  "name": "obliterate",
+                  "aliases": [],
+                  "description": "Obliterate local disk, so it will be self-formatted on startup",
+                  "visible": true,
+                  "options": {}
+                }
+              }
+            },
+            "genconfig": {
+              "name": "genconfig",
+              "aliases": [],
+              "description": "Config generation",
+              "visible": true,
+              "subcommands": {
+                "static": { "name": "static", "aliases": [], "description": "Generate configuration for static group", "visible": true, "options": {} }
+              }
+            },
+            "config": {
+              "name": "config",
+              "aliases": [],
+              "description": "Configuration management",
+              "visible": true,
+              "subcommands": {
+                "init": {
+                  "name": "init",
+                  "aliases": [],
+                  "description": "Initialize and manage blobstorage config using yaml description",
+                  "visible": true,
+                  "options": {
+                    "--domain": { "description": "availability domain", "visible": true },
+                    "--yaml-file": { "description": "read blobstorage config from yaml file", "visible": true, "required": true },
+                    "-n|--dry-run": { "description": "do not apply updates", "visible": true }
+                  }
+                },
+                "invoke": {
+                  "name": "invoke",
+                  "aliases": [],
+                  "description": "Query or update blob storage configuration",
+                  "visible": true,
+                  "options": {
+                    "--domain": { "description": "availability domain", "visible": true },
+                    "--proto-file": { "description": "read protobuf query from file", "visible": true },
+                    "--proto": { "description": "query protobuf", "visible": true },
+                    "-n|--dry-run": { "description": "do not apply updates", "visible": true }
+                  }
+                },
+                "propose": {
+                  "name": "propose",
+                  "aliases": [],
+                  "description": "Configuration proposition for migration and initial configuring",
+                  "visible": true,
+                  "subcommands": {
+                    "storage-pools": {
+                      "name": "storage-pools",
+                      "aliases": ["sp"],
+                      "description": "Propose cluster Storage Pool configuration for migration",
+                      "visible": true,
+                      "options": {
+                        "--domain": { "description": "availability domain", "visible": true }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "database": {
+          "name": "database",
+          "aliases": ["db", "tenant"],
+          "description": "Database administration",
+          "visible": true,
+          "subcommands": {
+            "*": {
+              "name": "*",
+              "aliases": [],
+              "description": "<database name>",
+              "visible": true,
+              "subcommands": {
+                "create": { "name": "create", "aliases": [], "description": "Create new database", "visible": true, "options": {} },
+                "remove": { "name": "remove", "aliases": [], "description": "Remove database", "visible": true, "options": {} },
+                "status": { "name": "status", "aliases": [], "description": "Get database status", "visible": true, "options": {} }
+              }
+            },
+            "list": { "name": "list", "aliases": [], "description": "List existing databases", "visible": true, "options": {} },
+            "options": { "name": "options", "aliases": [], "description": "Describe available database options", "visible": true, "options": {} }
+          }
+        },
+        "console": {
+          "name": "console",
+          "aliases": [],
+          "description": "Console commands",
+          "visible": true,
+          "subcommands": {
+            "config": {
+              "name": "config",
+              "aliases": [],
+              "description": "",
+              "visible": true,
+              "subcommands": {
+                "get": { "name": "get", "aliases": [], "description": "Get current Console config", "visible": true, "options": {} },
+                "set": { "name": "set", "aliases": [], "description": "Modify Console config", "visible": true, "options": {} }
+              }
+            },
+            "configs": {
+              "name": "configs",
+              "aliases": [],
+              "description": "",
+              "visible": true,
+              "subcommands": {
+                "update": { "name": "update", "aliases": [], "description": "Execute Console configure request", "visible": true, "options": {} },
+                "load": { "name": "load", "aliases": [], "description": "Load config from CMS for node with specified attributes", "visible": true, "options": {} },
+                "dump-yaml": { "name": "dump-yaml", "aliases": [], "description": "Dump config in yaml format", "visible": true, "options": {} },
+                "convert-to-yaml": { "name": "convert-to-yaml", "aliases": [], "description": "Convert config-item to yaml format", "visible": true, "options": {} },
+                "convert-from-yaml": { "name": "convert-from-yaml", "aliases": [], "description": "Convert config-item from yaml format", "visible": true, "options": {} }
+              }
+            },
+            "execute": { "name": "execute", "aliases": ["exec"], "description": "Execute console request protobuf", "visible": true, "options": {} },
+            "validator": {
+              "name": "validator",
+              "aliases": [],
+              "description": "",
+              "visible": true,
+              "subcommands": {
+                "list": { "name": "list", "aliases": [], "description": "List config validators", "visible": true, "options": {} },
+                "enable": { "name": "enable", "aliases": [], "description": "Enable config validator", "visible": true, "options": {} },
+                "disable": { "name": "disable", "aliases": [], "description": "Disable config validator", "visible": true, "options": {} }
+              }
+            }
+          }
+        }
+      }
+    },
+    "db": {
+      "name": "db",
+      "aliases": [],
+      "description": "YDB DB operations",
+      "visible": true,
+      "subcommands": {
+        "schema": {
+          "name": "schema",
+          "aliases": [],
+          "description": "Schema operations",
+          "visible": true,
+          "subcommands": {
+            "mkdir": { "name": "mkdir", "aliases": [], "description": "Create directory", "visible": true, "options": {} },
+            "drop": { "name": "drop", "aliases": [], "description": "Remove schema object", "visible": true, "options": {} },
+            "describe": { "name": "describe", "aliases": ["desc"], "description": "Describe schema object", "visible": true, "options": {} },
+            "ls": { "name": "ls", "aliases": [], "description": "List schema object or path content", "visible": true, "options": {} },
+            "init": { "name": "init", "aliases": [], "description": "Initialize schema root", "visible": true, "options": {} },
+            "chown": { "name": "chown", "aliases": [], "description": "Change owner", "visible": true, "options": {} },
+            "execute": { "name": "execute", "aliases": ["exec"], "description": "Execute schema protobuf", "visible": true, "options": { "-t|--txid": { "description": "Print TxId", "visible": true } } },
+            "access": {
+              "name": "access",
+              "aliases": ["acl"],
+              "description": "Access operations",
+              "visible": true,
+              "subcommands": {
+                "add": { "name": "add", "aliases": [], "description": "Add access right", "visible": true, "options": {} },
+                "remove": { "name": "remove", "aliases": [], "description": "Remove access right", "visible": true, "options": {} },
+                "set-inheritance": { "name": "set-inheritance", "aliases": [], "description": "Enable permission inheritance from the parent", "visible": true, "options": {} },
+                "clear-inheritance": { "name": "clear-inheritance", "aliases": [], "description": "Disable permission inheritance from the parent", "visible": true, "options": {} }
+              }
+            },
+            "table": {
+              "name": "table",
+              "aliases": [],
+              "description": "Table operations",
+              "visible": true,
+              "subcommands": {
+                "options": { "name": "options", "aliases": [], "description": "Describe table options", "visible": true, "options": {} },
+                "copy": { "name": "copy", "aliases": [], "description": "Copy table", "visible": true, "options": {} }
+              }
+            },
+            "user-attribute": {
+              "name": "user-attribute",
+              "aliases": ["ua"],
+              "description": "User attribute operations",
+              "visible": true,
+              "subcommands": {
+                "get": { "name": "get", "aliases": [], "description": "Get user attributes", "visible": true, "options": {} },
+                "set": { "name": "set", "aliases": [], "description": "Set user attribute(s)", "visible": true, "options": {} },
+                "del": { "name": "del", "aliases": [], "description": "Delete user attribute(s)", "visible": true, "options": {} }
+              }
+            }
+          }
+        },
+        "minikql": { "name": "minikql", "aliases": ["execute", "exec", "mkql"], "description": "Execute Mini-KQL query", "visible": true, "options": {} }
+      }
+    },
+    "cms": {
+      "name": "cms",
+      "aliases": [],
+      "description": "CMS requests",
+      "visible": true,
+      "subcommands": {
+        "state": { "name": "state", "aliases": [], "description": "Get cluster state", "visible": true, "options": { "--host": { "description": "Get state for specified host(s)", "visible": true }, "--domain": { "description": "Set target domain", "visible": true } } },
+        "request": { "name": "request", "aliases": [], "description": "Make and manage permission requests", "visible": true, "subcommands": {} },
+        "notify": { "name": "notify", "aliases": [], "description": "Send and manage notifications", "visible": true, "subcommands": {} },
+        "permission": { "name": "permission", "aliases": [], "description": "Manage issued permissions", "visible": true, "subcommands": {} },
+        "config": {
+          "name": "config",
+          "aliases": [],
+          "description": "Manage CMS config",
+          "visible": true,
+          "subcommands": {
+            "get": { "name": "get", "aliases": [], "description": "Get CMS config", "visible": true, "options": {} },
+            "set": { "name": "set", "aliases": [], "description": "Set CMS config", "visible": true, "options": {} }
+          }
+        },
+        "marker": { "name": "marker", "aliases": [], "description": "Manage markers", "visible": true, "subcommands": {} },
+        "log": { "name": "log", "aliases": [], "description": "Inspect log records", "visible": true, "subcommands": {} }
+      }
+    },
+    "whoami": { "name": "whoami", "aliases": [], "description": "Who am I?", "visible": true, "options": {} },
+    "discovery": {
+      "name": "discovery",
+      "aliases": [],
+      "description": "Endpoint discovery",
+      "visible": true,
+      "subcommands": {
+        "list": { "name": "list", "aliases": [], "description": "List existing tenants", "visible": true, "options": {} }
+      }
+    },
+    "server": {
+      "name": "server",
+      "aliases": [],
+      "description": "Execute YDB server",
+      "visible": true,
+      "options": {
+        "--yaml-config": { "description": "Yaml config", "visible": true },
+        "-n|--node": { "description": "Node ID or 'static' to auto-detect", "visible": true },
+        "--tenant": { "description": "add binding for Local service to specified tenant", "visible": true },
+        "--grpc-port": { "description": "enable gRPC server on port", "visible": true },
+        "--grpcs-port": { "description": "enable gRPC SSL server on port", "visible": true },
+        "--mon-port": { "description": "Monitoring port", "visible": true },
+        "--ic-port": { "description": "interconnect port", "visible": true },
+        "--log-level": { "description": "default logging level (default: 4)", "visible": true },
+        "--syslog": { "description": "send to syslog instead of stderr", "visible": true }
+      }
+    },
+    "config": {
+      "name": "config",
+      "aliases": [],
+      "description": "config utils",
+      "visible": true,
+      "subcommands": {
+        "validate": { "name": "validate", "aliases": [], "description": "Config validation utils", "visible": true, "options": {} }
+      }
+    },
+    "run": {
+      "name": "run",
+      "aliases": [],
+      "description": "Legacy command to start YDB server",
+      "visible": false,
+      "options": {
+        "-n|--node": { "description": "Node ID", "visible": true, "required": true },
+        "--domains-file": { "description": "domain config file", "visible": true, "required": true },
+        "--channels-file": { "description": "tablet channel profile config file", "visible": true, "required": true },
+        "--mon-port": { "description": "Monitoring port", "visible": true },
+        "--grpc-port": { "description": "enable gRPC server on port", "visible": true }
+      }
+    },
+    "format-info": {
+      "name": "format-info",
+      "aliases": [],
+      "description": "Read pdisk format info",
+      "visible": false,
+      "options": {
+        "-p|--pdisk-path": { "description": "Path to pdisk to read format info", "visible": true, "required": true },
+        "-k|--main-key": { "description": "Encryption main-key to use while reading", "visible": true },
+        "--master-key": { "description": "Obsolete: use main-key", "visible": true },
+        "-v|--verbose": { "description": "Output detailed information for debugging", "visible": true }
+      }
+    },
+    "format-util": {
+      "name": "format-util",
+      "aliases": [],
+      "description": "Query blob storage format configuration file",
+      "visible": false,
+      "options": {
+        "--format-file": { "description": "Blob storage format config file", "visible": true, "required": true },
+        "-n|--node-id": { "description": "Node ID to get drive info for", "visible": true, "required": true }
+      }
+    },
+    "node-by-host": {
+      "name": "node-by-host",
+      "aliases": [],
+      "description": "Get node id by hostname",
+      "visible": false,
+      "options": {
+        "--naming-file": { "description": "Static nameservice config file", "visible": true, "required": true },
+        "-n|--hostname": { "description": "Hostname to detect node id for", "visible": true, "required": true },
+        "-p|--port": { "description": "Port to detect node id for", "visible": true }
+      }
+    },
+    "scheme-initroot": {
+      "name": "scheme-initroot",
+      "aliases": [],
+      "description": "Init scheme root",
+      "visible": false,
+      "options": {
+        "-n|--name": { "description": "Domain name", "visible": true, "required": true },
+        "--config": { "description": "Apply global config (deprecated)", "visible": true },
+        "--config-file": { "description": "Load global config from file (deprecated)", "visible": true },
+        "-s|--server": { "description": "server address to connect", "visible": true }
+      }
+    },
+    "persqueue-request": {
+      "name": "persqueue-request",
+      "aliases": [],
+      "description": "Send protobuf request to a persqueue tablet",
+      "visible": false,
+      "options": {
+        "--protobuf": { "description": "String representation of the request protobuf", "visible": true },
+        "--protofile": { "description": "File with protobuf", "visible": true },
+        "-s|--server": { "description": "server address to connect", "visible": true }
+      }
+    },
+    "persqueue-stress": {
+      "name": "persqueue-stress",
+      "aliases": [],
+      "description": "Make PersQueue stress test",
+      "visible": false,
+      "options": {}
+    },
+    "persqueue-discover-clusters": {
+      "name": "persqueue-discover-clusters",
+      "aliases": [],
+      "description": "Discover persqueue clusters",
+      "visible": false,
+      "subcommands": {
+        "write-session": { "name": "write-session", "aliases": [], "description": "List write session clusters", "visible": true, "options": {} },
+        "read-session": { "name": "read-session", "aliases": [], "description": "List read session clusters", "visible": true, "options": {} }
+      }
+    },
+    "actorsys-perf-test": {
+      "name": "actorsys-perf-test",
+      "aliases": [],
+      "description": "Make actorsystem performance test",
+      "visible": false,
+      "options": {
+        "-t|--threads": { "description": "Size of thread pool to measure (default: 3)", "visible": true },
+        "-d|--duration": { "description": "Duration of test in seconds (default: 60)", "visible": true }
+      }
+    }
+  }
+}
