@@ -24,30 +24,31 @@
                 "execute": {
                   "name": "execute",
                   "aliases": ["exec"],
-                  "description": "",
+                  "description": "Execute MiniKQL on tablet",
                   "visible": true,
                   "options": {
-                    "--dry-run": { "description": "test changes without applying", "visible": true }
+                    "--dry-run": { "description": "test changes without applying", "visible": true, "required": false }
                   }
                 },
                 "kill": {
                   "name": "kill",
                   "aliases": [],
-                  "description": "",
+                  "description": "Kill/restart tablet",
                   "visible": true,
                   "options": {}
                 },
                 "scheme-tx": {
                   "name": "scheme-tx",
                   "aliases": ["scheme"],
-                  "description": "",
+                  "description": "Apply scheme changes to tablet",
                   "visible": true,
                   "options": {
-                    "--dry-run": { "description": "test changes without applying", "visible": true },
-                    "--print-schema": { "description": "print the resulting schema", "visible": true }
+                    "--dry-run": { "description": "test changes without applying", "visible": true, "required": false },
+                    "--print-schema": { "description": "print the resulting schema", "visible": true, "required": false }
                   }
                 }
-              }
+              },
+              "options": {}
             },
             "drain": {
               "name": "drain",
@@ -63,7 +64,8 @@
               "visible": true,
               "options": {}
             }
-          }
+          },
+          "options": {}
         },
         "node": {
           "name": "node",
@@ -79,14 +81,16 @@
               "subcommands": {
                 "drain": { "name": "drain", "aliases": [], "description": "Drain node", "visible": true, "options": {} },
                 "fill": { "name": "fill", "aliases": [], "description": "Fill node", "visible": true, "options": {} }
-              }
+              },
+              "options": {}
             }
-          }
+          },
+          "options": {}
         },
         "debug": {
           "name": "debug",
           "aliases": [],
-          "description": "",
+          "description": "Debug commands",
           "visible": true,
           "subcommands": {
             "interconnect": {
@@ -101,25 +105,25 @@
                   "description": "Initiate load actor on Interconnect",
                   "visible": true,
                   "options": {
-                    "--name": { "description": "load name to distinguish between several load processes", "visible": true },
-                    "--channel": { "description": "Interconnect channel number", "visible": true },
+                    "--name": { "description": "load name to distinguish between several load processes", "visible": true, "required": false },
+                    "--channel": { "description": "Interconnect channel number", "visible": true, "required": false },
                     "--hops": { "description": "comma-separated list of node ids making up packet route", "visible": true, "required": true },
-                    "--size-min": { "description": "minimal size of payload", "visible": true },
-                    "--size-max": { "description": "maximal size of payload", "visible": true },
+                    "--size-min": { "description": "minimal size of payload", "visible": true, "required": false },
+                    "--size-max": { "description": "maximal size of payload", "visible": true, "required": false },
                     "--infly": { "description": "maximal number of unanswered packets", "visible": true, "required": true },
-                    "--interval-min": { "description": "minimal interval between messages", "visible": true },
-                    "--interval-max": { "description": "maximal interval between messages", "visible": true },
-                    "--soft": { "description": "enable soft load", "visible": true },
-                    "--rope": { "description": "use ropes for payload instead of protobuf", "visible": true },
+                    "--interval-min": { "description": "minimal interval between messages", "visible": true, "required": false },
+                    "--interval-max": { "description": "maximal interval between messages", "visible": true, "required": false },
+                    "--soft": { "description": "enable soft load", "visible": true, "required": false },
+                    "--rope": { "description": "use ropes for payload instead of protobuf", "visible": true, "required": false },
                     "--duration": { "description": "test duration", "visible": true, "required": true },
-                    "--service-pool": { "description": "service pool name", "visible": true },
-                    "--rdma-mode": { "description": "rdma mode for data transfer (0 - disabled; 1 - use rdma)", "visible": true },
-                    "--num": { "description": "number of load actors", "visible": true }
+                    "--service-pool": { "description": "service pool name", "visible": true, "required": false },
+                    "--rdma-mode": { "description": "rdma mode for data transfer", "visible": true, "required": false },
+                    "--num": { "description": "number of load actors", "visible": true, "required": false }
                   }
                 },
-                "closepeersocket": { "name": "closepeersocket", "aliases": [], "description": "Close peer socket on existing session", "visible": true, "options": { "--node": { "description": "peer node id to close socket for", "visible": true, "required": true } } },
-                "closeinputsession": { "name": "closeinputsession", "aliases": [], "description": "Terminate input session", "visible": true, "options": { "--node": { "description": "peer node id to close input session for", "visible": true, "required": true } } },
-                "poisonsession": { "name": "poisonsession", "aliases": [], "description": "Poison session", "visible": true, "options": { "--node": { "description": "peer node id to poison session for", "visible": true, "required": true } } },
+                "closepeersocket": { "name": "closepeersocket", "aliases": [], "description": "Close peer socket on existing session", "visible": true, "options": { "--node": { "description": "peer node id", "visible": true, "required": true } } },
+                "closeinputsession": { "name": "closeinputsession", "aliases": [], "description": "Terminate input session", "visible": true, "options": { "--node": { "description": "peer node id", "visible": true, "required": true } } },
+                "poisonsession": { "name": "poisonsession", "aliases": [], "description": "Poison session", "visible": true, "options": { "--node": { "description": "peer node id", "visible": true, "required": true } } },
                 "slowpoke": {
                   "name": "slowpoke",
                   "aliases": [],
@@ -129,15 +133,17 @@
                     "--num-actors": { "description": "number of actors to spawn", "visible": true, "required": true },
                     "--pool-id": { "description": "pool id to spawn actors within", "visible": true, "required": true },
                     "--duration": { "description": "test duration", "visible": true, "required": true },
-                    "--sleep-min": { "description": "min uniform interval for event processing", "visible": true, "required": true },
-                    "--sleep-max": { "description": "max uniform interval for event processing", "visible": true, "required": true },
-                    "--reschedule-min": { "description": "min uniform interval between events", "visible": true, "required": true },
-                    "--reschedule-max": { "description": "max uniform interval between events", "visible": true, "required": true }
+                    "--sleep-min": { "description": "min interval for event processing", "visible": true, "required": true },
+                    "--sleep-max": { "description": "max interval for event processing", "visible": true, "required": true },
+                    "--reschedule-min": { "description": "min interval between events", "visible": true, "required": true },
+                    "--reschedule-max": { "description": "max interval between events", "visible": true, "required": true }
                   }
                 }
-              }
+              },
+              "options": {}
             }
-          }
+          },
+          "options": {}
         },
         "blobstorage": {
           "name": "blobstorage",
@@ -157,10 +163,10 @@
                   "description": "Get info about disk",
                   "visible": true,
                   "options": {
-                    "-k|--main-key": { "description": "encryption main-key to use while reading", "visible": true },
-                    "--master-key": { "description": "obsolete: use main-key", "visible": true },
-                    "-v|--verbose": { "description": "output detailed information for debugging", "visible": true },
-                    "-l|--lock": { "description": "lock device before reading disk info", "visible": true }
+                    "-k|--main-key": { "description": "encryption main-key", "visible": true, "required": false },
+                    "--master-key": { "description": "obsolete: use main-key", "visible": true, "required": false },
+                    "-v|--verbose": { "description": "detailed output", "visible": true, "required": false },
+                    "-l|--lock": { "description": "lock device before reading", "visible": true, "required": false }
                   }
                 },
                 "format": {
@@ -169,24 +175,63 @@
                   "description": "Format local disk",
                   "visible": true,
                   "options": {
-                    "-d|--disk-size": { "description": "disk size to set (supports K/M/G/T suffixes)", "visible": true },
-                    "-c|--chunk-size": { "description": "chunk size to set (default = 128M)", "visible": true },
-                    "-s|--sector-size": { "description": "sector size to set (default = 4k)", "visible": true },
-                    "-g|--guid": { "description": "guid to set while formatting", "visible": true, "required": true },
-                    "-k|--main-key": { "description": "encryption main-key to set while formatting", "visible": true },
-                    "--master-key": { "description": "obsolete: user main-key", "visible": true },
-                    "-t|--text-message": { "description": "text message to store in format sector", "visible": true },
-                    "-e|--erasure-encode": { "description": "erasure-encode data to recover from single-sector failures", "visible": true }
+                    "-d|--disk-size": { "description": "disk size (K/M/G/T suffixes)", "visible": true, "required": false },
+                    "-c|--chunk-size": { "description": "chunk size (default 128M)", "visible": true, "required": false },
+                    "-s|--sector-size": { "description": "sector size (default 4k)", "visible": true, "required": false },
+                    "-g|--guid": { "description": "guid to set", "visible": true, "required": true },
+                    "-k|--main-key": { "description": "encryption main-key", "visible": true, "required": false },
+                    "--master-key": { "description": "obsolete: use main-key", "visible": true, "required": false },
+                    "-t|--text-message": { "description": "text message for format sector", "visible": true, "required": false },
+                    "-e|--erasure-encode": { "description": "erasure-encode data", "visible": true, "required": false }
                   }
                 },
                 "obliterate": {
                   "name": "obliterate",
                   "aliases": [],
-                  "description": "Obliterate local disk, so it will be self-formatted on startup",
+                  "description": "Obliterate local disk",
                   "visible": true,
                   "options": {}
+                },
+                "metadata": {
+                  "name": "metadata",
+                  "aliases": [],
+                  "description": "PDisk metadata management",
+                  "visible": false,
+                  "subcommands": {
+                    "read": {
+                      "name": "read",
+                      "aliases": [],
+                      "description": "Read PDisk metadata",
+                      "visible": true,
+                      "options": {
+                        "-k|--main-key": { "description": "encryption main-key", "visible": true, "required": false },
+                        "--committed-yaml": { "description": "extract CommittedStorageConfig", "visible": true, "required": false },
+                        "--proposed-yaml": { "description": "extract ProposedStorageConfig", "visible": true, "required": false },
+                        "--prev-yaml": { "description": "extract PrevConfig", "visible": true, "required": false },
+                        "--json": { "description": "print as JSON", "visible": true, "required": false }
+                      }
+                    },
+                    "write": {
+                      "name": "write",
+                      "aliases": [],
+                      "description": "Write PDisk metadata",
+                      "visible": true,
+                      "options": {
+                        "--from-proto": { "description": "read from text-proto file", "visible": true, "required": false },
+                        "--from-json": { "description": "read from JSON file", "visible": true, "required": false },
+                        "--committed-yaml": { "description": "YAML for CommittedStorageConfig", "visible": true, "required": false },
+                        "--proposed-yaml": { "description": "YAML for ProposedStorageConfig", "visible": true, "required": false },
+                        "--clear-proposed": { "description": "clear ProposedStorageConfig", "visible": true, "required": false },
+                        "--validate-config": { "description": "validate configs", "visible": true, "required": false },
+                        "--auto-prev": { "description": "auto save to PrevConfig", "visible": true, "required": false },
+                        "-k|--main-key": { "description": "encryption main-key", "visible": true, "required": false }
+                      }
+                    }
+                  },
+                  "options": {}
                 }
-              }
+              },
+              "options": {}
             },
             "genconfig": {
               "name": "genconfig",
@@ -194,8 +239,33 @@
               "description": "Config generation",
               "visible": true,
               "subcommands": {
-                "static": { "name": "static", "aliases": [], "description": "Generate configuration for static group", "visible": true, "options": {} }
-              }
+                "static": {
+                  "name": "static",
+                  "aliases": [],
+                  "description": "Generate configuration for static group",
+                  "visible": true,
+                  "options": {
+                    "--erasure": { "description": "erasure species", "visible": true, "required": true },
+                    "--avdomain": { "description": "availability domain", "visible": true, "required": false },
+                    "--groupid": { "description": "group identifier", "visible": true, "required": false },
+                    "--pdisktype": { "description": "pdisk type (SSD|ROT)", "visible": true, "required": false },
+                    "--vdiskkind": { "description": "vdisk kind", "visible": true, "required": false },
+                    "--expected-slot-count": { "description": "expected slot count", "visible": true, "required": false },
+                    "--faildomains": { "description": "fail domains count", "visible": true, "required": true },
+                    "--vdisks": { "description": "vdisks per fail domain", "visible": true, "required": true },
+                    "--vslot": { "description": "vslot id", "visible": true, "required": false },
+                    "--dx": { "description": "distinction level", "visible": true, "required": true },
+                    "--ringdx": { "description": "ring distinction level", "visible": true, "required": true },
+                    "--rings": { "description": "number of rings", "visible": true, "required": true },
+                    "--domain-level-begin": { "description": "domain level begin", "visible": true, "required": true },
+                    "--domain-level-end": { "description": "domain level end", "visible": true, "required": true },
+                    "--ring-level-begin": { "description": "ring level begin", "visible": true, "required": true },
+                    "--ring-level-end": { "description": "ring level end", "visible": true, "required": true },
+                    "--bs-format-file": { "description": "path to bs_format.txt", "visible": true, "required": true }
+                  }
+                }
+              },
+              "options": {}
             },
             "config": {
               "name": "config",
@@ -206,12 +276,12 @@
                 "init": {
                   "name": "init",
                   "aliases": [],
-                  "description": "Initialize and manage blobstorage config using yaml description",
+                  "description": "Initialize blobstorage config from yaml",
                   "visible": true,
                   "options": {
-                    "--domain": { "description": "availability domain", "visible": true },
-                    "--yaml-file": { "description": "read blobstorage config from yaml file", "visible": true, "required": true },
-                    "-n|--dry-run": { "description": "do not apply updates", "visible": true }
+                    "--domain": { "description": "availability domain", "visible": true, "required": false },
+                    "--yaml-file": { "description": "yaml config file", "visible": true, "required": true },
+                    "-n|--dry-run": { "description": "do not apply", "visible": true, "required": false }
                   }
                 },
                 "invoke": {
@@ -220,32 +290,35 @@
                   "description": "Query or update blob storage configuration",
                   "visible": true,
                   "options": {
-                    "--domain": { "description": "availability domain", "visible": true },
-                    "--proto-file": { "description": "read protobuf query from file", "visible": true },
-                    "--proto": { "description": "query protobuf", "visible": true },
-                    "-n|--dry-run": { "description": "do not apply updates", "visible": true }
+                    "--domain": { "description": "availability domain", "visible": true, "required": false },
+                    "--proto-file": { "description": "protobuf query file", "visible": true, "required": false },
+                    "--proto": { "description": "query protobuf", "visible": true, "required": false },
+                    "-n|--dry-run": { "description": "do not apply", "visible": true, "required": false }
                   }
                 },
                 "propose": {
                   "name": "propose",
                   "aliases": [],
-                  "description": "Configuration proposition for migration and initial configuring",
+                  "description": "Configuration proposition",
                   "visible": true,
                   "subcommands": {
                     "storage-pools": {
                       "name": "storage-pools",
                       "aliases": ["sp"],
-                      "description": "Propose cluster Storage Pool configuration for migration",
+                      "description": "Propose Storage Pool configuration",
                       "visible": true,
                       "options": {
-                        "--domain": { "description": "availability domain", "visible": true }
+                        "--domain": { "description": "availability domain", "visible": true, "required": false }
                       }
                     }
-                  }
+                  },
+                  "options": {}
                 }
-              }
+              },
+              "options": {}
             }
-          }
+          },
+          "options": {}
         },
         "database": {
           "name": "database",
@@ -259,14 +332,98 @@
               "description": "<database name>",
               "visible": true,
               "subcommands": {
-                "create": { "name": "create", "aliases": [], "description": "Create new database", "visible": true, "options": {} },
-                "remove": { "name": "remove", "aliases": [], "description": "Remove database", "visible": true, "options": {} },
-                "status": { "name": "status", "aliases": [], "description": "Get database status", "visible": true, "options": {} }
-              }
+                "create": {
+                  "name": "create",
+                  "aliases": [],
+                  "description": "Create new database",
+                  "visible": true,
+                  "options": {
+                    "--domain": { "description": "target domain", "visible": true, "required": false },
+                    "--no-tx": { "description": "disable tenant services", "visible": true, "required": false },
+                    "--attr": { "description": "attach attribute name=value", "visible": true, "required": false },
+                    "--shared": { "description": "create shared database", "visible": true, "required": false },
+                    "--serverless": { "description": "create serverless database", "visible": true, "required": false },
+                    "--data-size-hard-quota": { "description": "max data size in bytes", "visible": true, "required": false },
+                    "--data-size-soft-quota": { "description": "soft data size limit", "visible": true, "required": false }
+                  }
+                },
+                "remove": {
+                  "name": "remove",
+                  "aliases": [],
+                  "description": "Remove database",
+                  "visible": true,
+                  "options": {
+                    "--domain": { "description": "target domain", "visible": true, "required": false },
+                    "--force": { "description": "force execution", "visible": true, "required": false }
+                  }
+                },
+                "status": {
+                  "name": "status",
+                  "aliases": [],
+                  "description": "Get database status",
+                  "visible": true,
+                  "options": {
+                    "--domain": { "description": "target domain", "visible": true, "required": false }
+                  }
+                },
+                "pools": {
+                  "name": "pools",
+                  "aliases": [],
+                  "description": "Storage pools management",
+                  "visible": true,
+                  "subcommands": {
+                    "add": {
+                      "name": "add",
+                      "aliases": [],
+                      "description": "Add storage resources",
+                      "visible": true,
+                      "options": {
+                        "--domain": { "description": "target domain", "visible": true, "required": false }
+                      }
+                    }
+                  },
+                  "options": {}
+                },
+                "units": {
+                  "name": "units",
+                  "aliases": [],
+                  "description": "Computational units management",
+                  "visible": true,
+                  "subcommands": {
+                    "add": { "name": "add", "aliases": [], "description": "Add units", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false } } },
+                    "remove": { "name": "remove", "aliases": [], "description": "Remove units", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false } } },
+                    "register": { "name": "register", "aliases": [], "description": "Register units", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false } } },
+                    "deregister": { "name": "deregister", "aliases": [], "description": "Deregister units", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false } } }
+                  },
+                  "options": {}
+                },
+                "quotas": {
+                  "name": "quotas",
+                  "aliases": [],
+                  "description": "Manage database quotas",
+                  "visible": true,
+                  "subcommands": {
+                    "change": {
+                      "name": "change",
+                      "aliases": [],
+                      "description": "Change quotas",
+                      "visible": true,
+                      "options": {
+                        "--domain": { "description": "target domain", "visible": true, "required": false },
+                        "--data-size-hard-quota": { "description": "max data size", "visible": true, "required": false },
+                        "--data-size-soft-quota": { "description": "soft data limit", "visible": true, "required": false }
+                      }
+                    }
+                  },
+                  "options": {}
+                }
+              },
+              "options": {}
             },
-            "list": { "name": "list", "aliases": [], "description": "List existing databases", "visible": true, "options": {} },
-            "options": { "name": "options", "aliases": [], "description": "Describe available database options", "visible": true, "options": {} }
-          }
+            "list": { "name": "list", "aliases": [], "description": "List databases", "visible": true, "options": {} },
+            "options": { "name": "options", "aliases": [], "description": "Describe database options", "visible": true, "options": {} }
+          },
+          "options": {}
         },
         "console": {
           "name": "console",
@@ -277,41 +434,170 @@
             "config": {
               "name": "config",
               "aliases": [],
-              "description": "",
+              "description": "Console config",
               "visible": true,
               "subcommands": {
-                "get": { "name": "get", "aliases": [], "description": "Get current Console config", "visible": true, "options": {} },
-                "set": { "name": "set", "aliases": [], "description": "Modify Console config", "visible": true, "options": {} }
-              }
+                "get": { "name": "get", "aliases": [], "description": "Get Console config", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--retry": { "description": "retry count", "visible": true, "required": false } } },
+                "set": { "name": "set", "aliases": [], "description": "Set Console config", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--retry": { "description": "retry count", "visible": true, "required": false }, "--merge": { "description": "merge with current", "visible": true, "required": false }, "--merge-overwrite-repeated": { "description": "merge overwriting repeated", "visible": true, "required": false } } }
+              },
+              "options": {}
             },
             "configs": {
               "name": "configs",
               "aliases": [],
-              "description": "",
+              "description": "Configs management",
               "visible": true,
               "subcommands": {
-                "update": { "name": "update", "aliases": [], "description": "Execute Console configure request", "visible": true, "options": {} },
-                "load": { "name": "load", "aliases": [], "description": "Load config from CMS for node with specified attributes", "visible": true, "options": {} },
-                "dump-yaml": { "name": "dump-yaml", "aliases": [], "description": "Dump config in yaml format", "visible": true, "options": {} },
-                "convert-to-yaml": { "name": "convert-to-yaml", "aliases": [], "description": "Convert config-item to yaml format", "visible": true, "options": {} },
-                "convert-from-yaml": { "name": "convert-from-yaml", "aliases": [], "description": "Convert config-item from yaml format", "visible": true, "options": {} }
-              }
+                "update": { "name": "update", "aliases": [], "description": "Execute configure request", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--retry": { "description": "retry count", "visible": true, "required": false }, "--dry-run": { "description": "dry run mode", "visible": true, "required": false }, "--out-dir": { "description": "output directory", "visible": true, "required": false } } },
+                "load": { "name": "load", "aliases": [], "description": "Load config from CMS", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--retry": { "description": "retry count", "visible": true, "required": false }, "--out-dir": { "description": "output directory", "visible": true, "required": true }, "--tenant": { "description": "tenant attribute", "visible": true, "required": false }, "--node-type": { "description": "node type", "visible": true, "required": false }, "--node-id": { "description": "node id", "visible": true, "required": false }, "--host": { "description": "host attribute", "visible": true, "required": false } } },
+                "dump-yaml": { "name": "dump-yaml", "aliases": [], "description": "Dump config in yaml", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--retry": { "description": "retry count", "visible": true, "required": false } } },
+                "convert-to-yaml": { "name": "convert-to-yaml", "aliases": [], "description": "Convert to yaml", "visible": true, "options": {} },
+                "convert-from-yaml": { "name": "convert-from-yaml", "aliases": [], "description": "Convert from yaml", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": true } } }
+              },
+              "options": {}
             },
-            "execute": { "name": "execute", "aliases": ["exec"], "description": "Execute console request protobuf", "visible": true, "options": {} },
+            "execute": { "name": "execute", "aliases": ["exec"], "description": "Execute console request", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--retry": { "description": "retry count", "visible": true, "required": false } } },
             "validator": {
               "name": "validator",
               "aliases": [],
-              "description": "",
+              "description": "Config validators",
               "visible": true,
               "subcommands": {
-                "list": { "name": "list", "aliases": [], "description": "List config validators", "visible": true, "options": {} },
-                "enable": { "name": "enable", "aliases": [], "description": "Enable config validator", "visible": true, "options": {} },
-                "disable": { "name": "disable", "aliases": [], "description": "Disable config validator", "visible": true, "options": {} }
-              }
+                "list": { "name": "list", "aliases": [], "description": "List validators", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--retry": { "description": "retry count", "visible": true, "required": false } } },
+                "enable": { "name": "enable", "aliases": [], "description": "Enable validator", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--retry": { "description": "retry count", "visible": true, "required": false } } },
+                "disable": { "description": "Disable validator", "name": "disable", "aliases": [], "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--retry": { "description": "retry count", "visible": true, "required": false } } }
+              },
+              "options": {}
             }
-          }
+          },
+          "options": {}
         }
-      }
+      },
+      "options": {}
+    },
+    "cms": {
+      "name": "cms",
+      "aliases": [],
+      "description": "CMS requests",
+      "visible": true,
+      "subcommands": {
+        "state": { "name": "state", "aliases": [], "description": "Get cluster state", "visible": true, "options": { "--host": { "description": "host(s)", "visible": true, "required": false }, "--domain": { "description": "target domain", "visible": true, "required": false } } },
+        "request": {
+          "name": "request",
+          "aliases": [],
+          "description": "Permission requests",
+          "visible": true,
+          "subcommands": {
+            "replace": {
+              "name": "replace",
+              "aliases": [],
+              "description": "Replace requests",
+              "visible": true,
+              "subcommands": {
+                "device": { "name": "device", "aliases": [], "description": "Replace device", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--host": { "description": "host name", "visible": true, "required": true }, "--duration": { "description": "duration in minutes", "visible": true, "required": true }, "--user": { "description": "user name", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false }, "--reason": { "description": "request description", "visible": true, "required": false }, "--schedule": { "description": "schedule if disallowed", "visible": true, "required": false }, "--hours": { "description": "permission duration hours", "visible": true, "required": false }, "--minutes": { "description": "permission duration minutes", "visible": true, "required": false }, "--tenant-policy": { "description": "tenant policy", "visible": true, "required": false }, "--allow-partial": { "description": "allow partial", "visible": true, "required": false }, "--availability-mode": { "description": "availability mode", "visible": true, "required": false }, "--evict-vdisks": { "description": "evict vdisks", "visible": true, "required": false }, "--priority": { "description": "request priority", "visible": true, "required": false } } }
+              },
+              "options": {}
+            },
+            "restart": {
+              "name": "restart",
+              "aliases": [],
+              "description": "Restart requests",
+              "visible": true,
+              "subcommands": {
+                "service": { "name": "service", "aliases": [], "description": "Restart service", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--host": { "description": "host name", "visible": true, "required": true }, "--duration": { "description": "duration in minutes", "visible": true, "required": true }, "--user": { "description": "user name", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false }, "--reason": { "description": "description", "visible": true, "required": false }, "--schedule": { "description": "schedule if disallowed", "visible": true, "required": false }, "--hours": { "description": "permission hours", "visible": true, "required": false }, "--minutes": { "description": "permission minutes", "visible": true, "required": false }, "--tenant-policy": { "description": "tenant policy", "visible": true, "required": false }, "--allow-partial": { "description": "allow partial", "visible": true, "required": false }, "--availability-mode": { "description": "availability mode", "visible": true, "required": false }, "--evict-vdisks": { "description": "evict vdisks", "visible": true, "required": false }, "--priority": { "description": "priority", "visible": true, "required": false } } },
+                "host": { "name": "host", "aliases": [], "description": "Restart host", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--duration": { "description": "duration", "visible": true, "required": true }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false }, "--reason": { "description": "description", "visible": true, "required": false }, "--schedule": { "description": "schedule", "visible": true, "required": false }, "--hours": { "description": "hours", "visible": true, "required": false }, "--minutes": { "description": "minutes", "visible": true, "required": false }, "--tenant-policy": { "description": "tenant policy", "visible": true, "required": false }, "--allow-partial": { "description": "allow partial", "visible": true, "required": false }, "--availability-mode": { "description": "availability mode", "visible": true, "required": false }, "--evict-vdisks": { "description": "evict vdisks", "visible": true, "required": false }, "--priority": { "description": "priority", "visible": true, "required": false } } },
+                "tenant": { "name": "tenant", "aliases": [], "description": "Restart tenant hosts", "visible": true, "options": { "--domain": { "description": "target domain", "visible": true, "required": false }, "--duration": { "description": "duration", "visible": true, "required": true }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false }, "--reason": { "description": "description", "visible": true, "required": false }, "--schedule": { "description": "schedule", "visible": true, "required": false }, "--hours": { "description": "hours", "visible": true, "required": false }, "--minutes": { "description": "minutes", "visible": true, "required": false }, "--tenant-policy": { "description": "tenant policy", "visible": true, "required": false }, "--allow-partial": { "description": "allow partial", "visible": true, "required": false }, "--availability-mode": { "description": "availability mode", "visible": true, "required": false }, "--evict-vdisks": { "description": "evict vdisks", "visible": true, "required": false }, "--priority": { "description": "priority", "visible": true, "required": false } } }
+              },
+              "options": {}
+            },
+            "get": { "name": "get", "aliases": [], "description": "Get request", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false } } },
+            "list": { "name": "list", "aliases": [], "description": "List requests", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false } } },
+            "reject": { "name": "reject", "aliases": [], "description": "Reject request", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false } } },
+            "approve": { "name": "approve", "aliases": [], "description": "Approve request", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false } } },
+            "check": { "name": "check", "aliases": [], "description": "Check request", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false } } }
+          },
+          "options": {}
+        },
+        "notify": {
+          "name": "notify",
+          "aliases": [],
+          "description": "Notifications",
+          "visible": true,
+          "subcommands": {
+            "replace": {
+              "name": "replace",
+              "aliases": [],
+              "description": "Replace notifications",
+              "visible": true,
+              "subcommands": {
+                "device": { "name": "device", "aliases": [], "description": "Device replacement", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--host": { "description": "host", "visible": true, "required": true }, "--duration": { "description": "duration", "visible": true, "required": true }, "--user": { "description": "user", "visible": true, "required": true }, "--reason": { "description": "reason", "visible": true, "required": false }, "--delay": { "description": "delay", "visible": true, "required": false } } }
+              },
+              "options": {}
+            },
+            "restart": {
+              "name": "restart",
+              "aliases": [],
+              "description": "Restart notifications",
+              "visible": true,
+              "subcommands": {
+                "service": { "name": "service", "aliases": [], "description": "Service restart", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--host": { "description": "host", "visible": true, "required": true }, "--duration": { "description": "duration", "visible": true, "required": true }, "--user": { "description": "user", "visible": true, "required": true }, "--reason": { "description": "reason", "visible": true, "required": false }, "--delay": { "description": "delay", "visible": true, "required": false } } },
+                "host": { "name": "host", "aliases": [], "description": "Host restart", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--duration": { "description": "duration", "visible": true, "required": true }, "--user": { "description": "user", "visible": true, "required": true }, "--reason": { "description": "reason", "visible": true, "required": false }, "--delay": { "description": "delay", "visible": true, "required": false } } }
+              },
+              "options": {}
+            },
+            "get": { "name": "get", "aliases": [], "description": "Get notification", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false } } },
+            "list": { "name": "list", "aliases": [], "description": "List notifications", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false } } },
+            "reject": { "name": "reject", "aliases": [], "description": "Reject notification", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false } } }
+          },
+          "options": {}
+        },
+        "permission": {
+          "name": "permission",
+          "aliases": [],
+          "description": "Manage permissions",
+          "visible": true,
+          "subcommands": {
+            "get": { "name": "get", "aliases": [], "description": "Get permission", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false } } },
+            "list": { "name": "list", "aliases": [], "description": "List permissions", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false } } },
+            "done": { "name": "done", "aliases": [], "description": "Done with permission", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false } } },
+            "reject": { "name": "reject", "aliases": [], "description": "Decline permission", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--user": { "description": "user", "visible": true, "required": true }, "--dry": { "description": "dry run", "visible": true, "required": false } } }
+          },
+          "options": {}
+        },
+        "config": {
+          "name": "config",
+          "aliases": [],
+          "description": "CMS config",
+          "visible": true,
+          "subcommands": {
+            "get": { "name": "get", "aliases": [], "description": "Get CMS config", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false } } },
+            "set": { "name": "set", "aliases": [], "description": "Set CMS config", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false } } }
+          },
+          "options": {}
+        },
+        "marker": {
+          "name": "marker",
+          "aliases": [],
+          "description": "Manage markers",
+          "visible": true,
+          "subcommands": {
+            "set": { "name": "set", "aliases": [], "description": "Set marker", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--host": { "description": "host(s)", "visible": true, "required": false }, "--node": { "description": "node(s)", "visible": true, "required": false }, "--pdisk": { "description": "pdisk(s)", "visible": true, "required": false } } },
+            "reset": { "name": "reset", "aliases": [], "description": "Reset marker", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--host": { "description": "host(s)", "visible": true, "required": false }, "--node": { "description": "node(s)", "visible": true, "required": false }, "--pdisk": { "description": "pdisk(s)", "visible": true, "required": false } } }
+          },
+          "options": {}
+        },
+        "log": {
+          "name": "log",
+          "aliases": [],
+          "description": "Inspect log",
+          "visible": true,
+          "subcommands": {
+            "tail": { "name": "tail", "aliases": [], "description": "Print log tail", "visible": true, "options": { "--domain": { "description": "domain", "visible": true, "required": false }, "--detailed": { "description": "detailed messages", "visible": true, "required": false }, "--page": { "description": "log page", "visible": true, "required": false }, "--limit": { "description": "entries limit", "visible": true, "required": false }, "--type": { "description": "filter by type", "visible": true, "required": false } } }
+          },
+          "options": {}
+        }
+      },
+      "options": {}
     },
     "db": {
       "name": "db",
@@ -328,21 +614,22 @@
             "mkdir": { "name": "mkdir", "aliases": [], "description": "Create directory", "visible": true, "options": {} },
             "drop": { "name": "drop", "aliases": [], "description": "Remove schema object", "visible": true, "options": {} },
             "describe": { "name": "describe", "aliases": ["desc"], "description": "Describe schema object", "visible": true, "options": {} },
-            "ls": { "name": "ls", "aliases": [], "description": "List schema object or path content", "visible": true, "options": {} },
+            "ls": { "name": "ls", "aliases": [], "description": "List path content", "visible": true, "options": {} },
             "init": { "name": "init", "aliases": [], "description": "Initialize schema root", "visible": true, "options": {} },
             "chown": { "name": "chown", "aliases": [], "description": "Change owner", "visible": true, "options": {} },
-            "execute": { "name": "execute", "aliases": ["exec"], "description": "Execute schema protobuf", "visible": true, "options": { "-t|--txid": { "description": "Print TxId", "visible": true } } },
+            "execute": { "name": "execute", "aliases": ["exec"], "description": "Execute schema protobuf", "visible": true, "options": { "-t|--txid": { "description": "Print TxId", "visible": true, "required": false } } },
             "access": {
               "name": "access",
               "aliases": ["acl"],
               "description": "Access operations",
               "visible": true,
               "subcommands": {
-                "add": { "name": "add", "aliases": [], "description": "Add access right", "visible": true, "options": {} },
-                "remove": { "name": "remove", "aliases": [], "description": "Remove access right", "visible": true, "options": {} },
-                "set-inheritance": { "name": "set-inheritance", "aliases": [], "description": "Enable permission inheritance from the parent", "visible": true, "options": {} },
-                "clear-inheritance": { "name": "clear-inheritance", "aliases": [], "description": "Disable permission inheritance from the parent", "visible": true, "options": {} }
-              }
+                "add": { "name": "add", "aliases": [], "description": "Add access", "visible": true, "options": {} },
+                "remove": { "name": "remove", "aliases": [], "description": "Remove access", "visible": true, "options": {} },
+                "set-inheritance": { "name": "set-inheritance", "aliases": [], "description": "Enable inheritance", "visible": true, "options": {} },
+                "clear-inheritance": { "name": "clear-inheritance", "aliases": [], "description": "Disable inheritance", "visible": true, "options": {} }
+              },
+              "options": {}
             },
             "table": {
               "name": "table",
@@ -350,49 +637,29 @@
               "description": "Table operations",
               "visible": true,
               "subcommands": {
-                "options": { "name": "options", "aliases": [], "description": "Describe table options", "visible": true, "options": {} },
+                "options": { "name": "options", "aliases": [], "description": "Table options", "visible": true, "options": {} },
                 "copy": { "name": "copy", "aliases": [], "description": "Copy table", "visible": true, "options": {} }
-              }
+              },
+              "options": {}
             },
             "user-attribute": {
               "name": "user-attribute",
               "aliases": ["ua"],
-              "description": "User attribute operations",
+              "description": "User attributes",
               "visible": true,
               "subcommands": {
-                "get": { "name": "get", "aliases": [], "description": "Get user attributes", "visible": true, "options": {} },
-                "set": { "name": "set", "aliases": [], "description": "Set user attribute(s)", "visible": true, "options": {} },
-                "del": { "name": "del", "aliases": [], "description": "Delete user attribute(s)", "visible": true, "options": {} }
-              }
+                "get": { "name": "get", "aliases": [], "description": "Get attributes", "visible": true, "options": {} },
+                "set": { "name": "set", "aliases": [], "description": "Set attributes", "visible": true, "options": {} },
+                "del": { "name": "del", "aliases": [], "description": "Delete attributes", "visible": true, "options": {} }
+              },
+              "options": {}
             }
-          }
+          },
+          "options": {}
         },
-        "minikql": { "name": "minikql", "aliases": ["execute", "exec", "mkql"], "description": "Execute Mini-KQL query", "visible": true, "options": {} }
-      }
-    },
-    "cms": {
-      "name": "cms",
-      "aliases": [],
-      "description": "CMS requests",
-      "visible": true,
-      "subcommands": {
-        "state": { "name": "state", "aliases": [], "description": "Get cluster state", "visible": true, "options": { "--host": { "description": "Get state for specified host(s)", "visible": true }, "--domain": { "description": "Set target domain", "visible": true } } },
-        "request": { "name": "request", "aliases": [], "description": "Make and manage permission requests", "visible": true, "subcommands": {} },
-        "notify": { "name": "notify", "aliases": [], "description": "Send and manage notifications", "visible": true, "subcommands": {} },
-        "permission": { "name": "permission", "aliases": [], "description": "Manage issued permissions", "visible": true, "subcommands": {} },
-        "config": {
-          "name": "config",
-          "aliases": [],
-          "description": "Manage CMS config",
-          "visible": true,
-          "subcommands": {
-            "get": { "name": "get", "aliases": [], "description": "Get CMS config", "visible": true, "options": {} },
-            "set": { "name": "set", "aliases": [], "description": "Set CMS config", "visible": true, "options": {} }
-          }
-        },
-        "marker": { "name": "marker", "aliases": [], "description": "Manage markers", "visible": true, "subcommands": {} },
-        "log": { "name": "log", "aliases": [], "description": "Inspect log records", "visible": true, "subcommands": {} }
-      }
+        "minikql": { "name": "minikql", "aliases": ["execute", "exec", "mkql"], "description": "Execute Mini-KQL", "visible": true, "options": {} }
+      },
+      "options": {}
     },
     "whoami": { "name": "whoami", "aliases": [], "description": "Who am I?", "visible": true, "options": {} },
     "discovery": {
@@ -401,8 +668,9 @@
       "description": "Endpoint discovery",
       "visible": true,
       "subcommands": {
-        "list": { "name": "list", "aliases": [], "description": "List existing tenants", "visible": true, "options": {} }
-      }
+        "list": { "name": "list", "aliases": [], "description": "List tenants", "visible": true, "options": {} }
+      },
+      "options": {}
     },
     "server": {
       "name": "server",
@@ -410,25 +678,90 @@
       "description": "Execute YDB server",
       "visible": true,
       "options": {
-        "--yaml-config": { "description": "Yaml config", "visible": true },
-        "-n|--node": { "description": "Node ID or 'static' to auto-detect", "visible": true },
-        "--tenant": { "description": "add binding for Local service to specified tenant", "visible": true },
-        "--grpc-port": { "description": "enable gRPC server on port", "visible": true },
-        "--grpcs-port": { "description": "enable gRPC SSL server on port", "visible": true },
-        "--mon-port": { "description": "Monitoring port", "visible": true },
-        "--ic-port": { "description": "interconnect port", "visible": true },
-        "--log-level": { "description": "default logging level (default: 4)", "visible": true },
-        "--syslog": { "description": "send to syslog instead of stderr", "visible": true }
+        "--yaml-config": { "description": "Yaml config file", "visible": true, "required": false },
+        "-n|--node": { "description": "Node ID or 'static'", "visible": true, "required": true },
+        "--tenant": { "description": "bind Local service to tenant", "visible": true, "required": false },
+        "--grpc-port": { "description": "gRPC server port", "visible": true, "required": false },
+        "--grpcs-port": { "description": "gRPC SSL port", "visible": true, "required": false },
+        "--mon-port": { "description": "monitoring port", "visible": true, "required": false },
+        "--mon-address": { "description": "monitoring address", "visible": true, "required": false },
+        "--mon-cert": { "description": "monitoring certificate", "visible": true, "required": false },
+        "--mon-key": { "description": "monitoring private key", "visible": true, "required": false },
+        "--mon-threads": { "description": "monitoring threads", "visible": true, "required": false },
+        "--mon-ca": { "description": "CA for client certs", "visible": true, "required": false },
+        "--ic-port": { "description": "interconnect port", "visible": true, "required": false },
+        "--sqs-port": { "description": "SQS port", "visible": true, "required": false },
+        "--log-level": { "description": "logging level (1-7)", "visible": true, "required": false },
+        "--log-sampling-level": { "description": "sample logs level", "visible": true, "required": false },
+        "--log-sampling-rate": { "description": "log sampling rate", "visible": true, "required": false },
+        "--log-format": { "description": "log format (full|short|json)", "visible": true, "required": false },
+        "--syslog": { "description": "send to syslog", "visible": true, "required": false },
+        "--syslog-service-tag": { "description": "syslog service tag", "visible": true, "required": false },
+        "--log-file-name": { "description": "log file name", "visible": true, "required": false },
+        "--tcp": { "description": "start tcp interconnect", "visible": true, "required": false },
+        "--cluster-name": { "description": "cluster name", "visible": true, "required": false },
+        "--node-broker": { "description": "node broker address", "visible": true, "required": false },
+        "--node-broker-port": { "description": "node broker port", "visible": true, "required": false },
+        "--node-broker-use-tls": { "description": "use TLS for node broker", "visible": true, "required": false },
+        "--node-address": { "description": "dynamic node address", "visible": true, "required": false },
+        "--node-host": { "description": "dynamic node hostname", "visible": true, "required": false },
+        "--node-resolve-host": { "description": "resolve hostname", "visible": true, "required": false },
+        "--node-domain": { "description": "domain for dynamic node", "visible": true, "required": false },
+        "--node-kind": { "description": "node kind (ydb|yq)", "visible": true, "required": false },
+        "--node-type": { "description": "node type", "visible": true, "required": false },
+        "--grpc-public-host": { "description": "public gRPC host", "visible": true, "required": false },
+        "--grpc-public-port": { "description": "public gRPC port", "visible": true, "required": false },
+        "--grpcs-public-port": { "description": "public gRPCS port", "visible": true, "required": false },
+        "--grpc-public-address-v4": { "description": "public IPv4", "visible": true, "required": false },
+        "--grpc-public-address-v6": { "description": "public IPv6", "visible": true, "required": false },
+        "--grpc-public-target-name-override": { "description": "TLS hostname override", "visible": true, "required": false },
+        "--kafka-port": { "description": "Kafka proxy port", "visible": true, "required": false },
+        "--pgwire-address": { "description": "PostgreSQL address", "visible": true, "required": false },
+        "--pgwire-port": { "description": "PostgreSQL port", "visible": true, "required": false },
+        "--cert": { "description": "TLS certificate", "visible": true, "required": false },
+        "--grpc-cert": { "description": "gRPC certificate", "visible": true, "required": false },
+        "--ic-cert": { "description": "IC certificate", "visible": true, "required": false },
+        "--key": { "description": "TLS private key", "visible": true, "required": false },
+        "--grpc-key": { "description": "gRPC private key", "visible": true, "required": false },
+        "--ic-key": { "description": "IC private key", "visible": true, "required": false },
+        "--ca": { "description": "CA certificate", "visible": true, "required": false },
+        "--grpc-ca": { "description": "gRPC CA cert", "visible": true, "required": false },
+        "--ic-ca": { "description": "IC CA cert", "visible": true, "required": false },
+        "--data-center": { "description": "data center name", "visible": true, "required": false },
+        "--module": { "description": "module name", "visible": true, "required": false },
+        "--rack": { "description": "rack name", "visible": true, "required": false },
+        "--body": { "description": "body number", "visible": true, "required": false },
+        "--config-dir": { "description": "config directory", "visible": true, "required": false },
+        "--tiny-mode": { "description": "start in tiny mode", "visible": true, "required": false },
+        "--suppress-version-check": { "description": "suppress IC version check", "visible": true, "required": false },
+        "-r|--restarts-count-file": { "description": "restarts counter file", "visible": true, "required": false },
+        "--compile-inflight-limit": { "description": "parallel compilation limit", "visible": true, "required": false },
+        "--udf": { "description": "load UDF library", "visible": true, "required": false },
+        "--udfs-dir": { "description": "UDF libraries directory", "visible": true, "required": false },
+        "--workload": { "description": "workload name", "visible": true, "required": false },
+        "--seed-nodes": { "description": "seed nodes config", "visible": true, "required": false },
+        "--force-database-labels": { "description": "force database labels", "visible": true, "required": false },
+        "--bridge-pile-name": { "description": "pile name for bridged mode", "visible": true, "required": false }
       }
     },
     "config": {
       "name": "config",
       "aliases": [],
-      "description": "config utils",
+      "description": "Config utilities",
       "visible": true,
       "subcommands": {
-        "validate": { "name": "validate", "aliases": [], "description": "Config validation utils", "visible": true, "options": {} }
-      }
+        "validate": {
+          "name": "validate",
+          "aliases": [],
+          "description": "Validate config",
+          "visible": true,
+          "options": {
+            "--current": { "description": "current config path", "visible": true, "required": true },
+            "--candidate": { "description": "candidate config path", "visible": true, "required": true }
+          }
+        }
+      },
+      "options": {}
     },
     "run": {
       "name": "run",
@@ -438,9 +771,9 @@
       "options": {
         "-n|--node": { "description": "Node ID", "visible": true, "required": true },
         "--domains-file": { "description": "domain config file", "visible": true, "required": true },
-        "--channels-file": { "description": "tablet channel profile config file", "visible": true, "required": true },
-        "--mon-port": { "description": "Monitoring port", "visible": true },
-        "--grpc-port": { "description": "enable gRPC server on port", "visible": true }
+        "--channels-file": { "description": "tablet channel profile", "visible": true, "required": true },
+        "--mon-port": { "description": "monitoring port", "visible": true, "required": false },
+        "--grpc-port": { "description": "gRPC port", "visible": true, "required": false }
       }
     },
     "format-info": {
@@ -449,20 +782,20 @@
       "description": "Read pdisk format info",
       "visible": false,
       "options": {
-        "-p|--pdisk-path": { "description": "Path to pdisk to read format info", "visible": true, "required": true },
-        "-k|--main-key": { "description": "Encryption main-key to use while reading", "visible": true },
-        "--master-key": { "description": "Obsolete: use main-key", "visible": true },
-        "-v|--verbose": { "description": "Output detailed information for debugging", "visible": true }
+        "-p|--pdisk-path": { "description": "pdisk path", "visible": true, "required": true },
+        "-k|--main-key": { "description": "encryption main-key", "visible": true, "required": false },
+        "--master-key": { "description": "obsolete: use main-key", "visible": true, "required": false },
+        "-v|--verbose": { "description": "detailed output", "visible": true, "required": false }
       }
     },
     "format-util": {
       "name": "format-util",
       "aliases": [],
-      "description": "Query blob storage format configuration file",
+      "description": "Query bs format config",
       "visible": false,
       "options": {
-        "--format-file": { "description": "Blob storage format config file", "visible": true, "required": true },
-        "-n|--node-id": { "description": "Node ID to get drive info for", "visible": true, "required": true }
+        "--format-file": { "description": "bs format config file", "visible": true, "required": true },
+        "-n|--node-id": { "description": "node ID", "visible": true, "required": true }
       }
     },
     "node-by-host": {
@@ -471,9 +804,9 @@
       "description": "Get node id by hostname",
       "visible": false,
       "options": {
-        "--naming-file": { "description": "Static nameservice config file", "visible": true, "required": true },
-        "-n|--hostname": { "description": "Hostname to detect node id for", "visible": true, "required": true },
-        "-p|--port": { "description": "Port to detect node id for", "visible": true }
+        "--naming-file": { "description": "nameservice config file", "visible": true, "required": true },
+        "-n|--hostname": { "description": "hostname", "visible": true, "required": true },
+        "-p|--port": { "description": "port", "visible": true, "required": false }
       }
     },
     "scheme-initroot": {
@@ -482,29 +815,41 @@
       "description": "Init scheme root",
       "visible": false,
       "options": {
-        "-n|--name": { "description": "Domain name", "visible": true, "required": true },
-        "--config": { "description": "Apply global config (deprecated)", "visible": true },
-        "--config-file": { "description": "Load global config from file (deprecated)", "visible": true },
-        "-s|--server": { "description": "server address to connect", "visible": true }
+        "-n|--name": { "description": "domain name", "visible": true, "required": true },
+        "--config": { "description": "global config (deprecated)", "visible": true, "required": false },
+        "--config-file": { "description": "config file (deprecated)", "visible": true, "required": false },
+        "-s|--server": { "description": "server address", "visible": true, "required": false }
       }
     },
     "persqueue-request": {
       "name": "persqueue-request",
       "aliases": [],
-      "description": "Send protobuf request to a persqueue tablet",
+      "description": "Send persqueue request",
       "visible": false,
       "options": {
-        "--protobuf": { "description": "String representation of the request protobuf", "visible": true },
-        "--protofile": { "description": "File with protobuf", "visible": true },
-        "-s|--server": { "description": "server address to connect", "visible": true }
+        "--protobuf": { "description": "request protobuf", "visible": true, "required": false },
+        "--protofile": { "description": "protobuf file", "visible": true, "required": false },
+        "-s|--server": { "description": "server address", "visible": true, "required": false }
       }
     },
     "persqueue-stress": {
       "name": "persqueue-stress",
       "aliases": [],
-      "description": "Make PersQueue stress test",
+      "description": "PersQueue stress test",
       "visible": false,
-      "options": {}
+      "options": {
+        "-c|--command": { "description": "action type (write|read)", "visible": true, "required": true },
+        "--topic": { "description": "topic", "visible": true, "required": true },
+        "--partition": { "description": "partition", "visible": true, "required": true },
+        "--sourceid": { "description": "source id", "visible": true, "required": false },
+        "-b|--batchsize": { "description": "batch size", "visible": true, "required": false },
+        "-m|--minsize": { "description": "min message size", "visible": true, "required": false },
+        "-M|--maxsize": { "description": "max message size", "visible": true, "required": false },
+        "-o|--offset": { "description": "start offset", "visible": true, "required": false },
+        "-R|--readtime": { "description": "read time ms", "visible": true, "required": false },
+        "-S|--sleeptime": { "description": "sleep time ms", "visible": true, "required": false },
+        "-B|--speed": { "description": "speed Kb/s", "visible": true, "required": false }
+      }
     },
     "persqueue-discover-clusters": {
       "name": "persqueue-discover-clusters",
@@ -512,18 +857,41 @@
       "description": "Discover persqueue clusters",
       "visible": false,
       "subcommands": {
-        "write-session": { "name": "write-session", "aliases": [], "description": "List write session clusters", "visible": true, "options": {} },
-        "read-session": { "name": "read-session", "aliases": [], "description": "List read session clusters", "visible": true, "options": {} }
-      }
+        "write-session": {
+          "name": "write-session",
+          "aliases": [],
+          "description": "Discover write session clusters",
+          "visible": true,
+          "options": {
+            "--topic": { "description": "topic", "visible": true, "required": true },
+            "--source-id": { "description": "source id", "visible": true, "required": true },
+            "--partition-group": { "description": "partition group", "visible": true, "required": false },
+            "--preferred-cluster": { "description": "preferred cluster", "visible": true, "required": false },
+            "--verbose": { "description": "verbose output", "visible": true, "required": false }
+          }
+        },
+        "read-session": {
+          "name": "read-session",
+          "aliases": [],
+          "description": "Discover read session clusters",
+          "visible": true,
+          "options": {
+            "--topic": { "description": "topic", "visible": true, "required": true },
+            "--mirror-to-cluster": { "description": "mirror cluster", "visible": true, "required": false },
+            "--verbose": { "description": "verbose output", "visible": true, "required": false }
+          }
+        }
+      },
+      "options": {}
     },
     "actorsys-perf-test": {
       "name": "actorsys-perf-test",
       "aliases": [],
-      "description": "Make actorsystem performance test",
+      "description": "Actor system performance test",
       "visible": false,
       "options": {
-        "-t|--threads": { "description": "Size of thread pool to measure (default: 3)", "visible": true },
-        "-d|--duration": { "description": "Duration of test in seconds (default: 60)", "visible": true }
+        "-t|--threads": { "description": "thread pool size (default 3)", "visible": true, "required": false },
+        "-d|--duration": { "description": "test duration seconds (default 60)", "visible": true, "required": false }
       }
     }
   }

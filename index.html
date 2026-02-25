@@ -9,8 +9,8 @@
             --bg-visible-to-hidden: #f8d7da;
             --bg-hidden-to-visible: #d4edda;
             --bg-modified: #fff3cd;
-            --bg-my-changes: #cce5ff;
-            --text-hidden: #6c757d;
+            --bg-has-changes-inside: #fffde7;
+            --text-hidden: #888;
             --text-visible: #212529;
             --border-my-changes: #004085;
         }
@@ -27,11 +27,6 @@
             line-height: 1.5;
             color: #333;
             background: #f5f5f5;
-        }
-
-        .container {
-            display: flex;
-            height: 100vh;
         }
 
         .header {
@@ -118,44 +113,110 @@
             cursor: pointer;
         }
 
+        /* Tree styles - clean hierarchical view */
+        .tree-root {
+            padding: 5px 0;
+        }
+
         .tree-item {
-            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 13px;
-            cursor: pointer;
             user-select: none;
         }
 
         .tree-item-row {
             display: flex;
             align-items: center;
-            padding: 3px 5px;
-            border-radius: 3px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 1px 0;
         }
 
-        .tree-item-row:hover { background: #f0f0f0; }
+        .tree-item-row:hover { background: #f5f5f5; }
         .tree-item-row.selected { background: #e3f2fd; }
-        .tree-item-row.hidden-cmd { color: var(--text-hidden); font-style: italic; }
+
+        /* Visible commands are bold */
+        .tree-item-row.visible-cmd .tree-name {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        /* Hidden commands are lighter */
+        .tree-item-row.hidden-cmd .tree-name {
+            color: var(--text-hidden);
+        }
+
+        /* Change highlighting */
         .tree-item-row.change-visible { background: var(--bg-hidden-to-visible); }
         .tree-item-row.change-hidden { background: var(--bg-visible-to-hidden); }
         .tree-item-row.change-modified { background: var(--bg-modified); }
-        .tree-item-row.my-change { border: 2px solid var(--border-my-changes); }
+        .tree-item-row.has-changes-inside { background: var(--bg-has-changes-inside); }
+        .tree-item-row.my-change { box-shadow: inset 3px 0 0 var(--border-my-changes); }
 
-        .tree-prefix { white-space: pre; color: #999; }
-        .tree-toggle { width: 16px; text-align: center; color: #666; }
-        .tree-name { margin-left: 4px; }
-        .tree-aliases { color: #888; font-size: 12px; margin-left: 4px; }
-        .tree-badges { margin-left: auto; display: flex; gap: 4px; }
+        .tree-toggle {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .tree-toggle.expandable {
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .tree-toggle.expandable:hover {
+            background: #e0e0e0;
+        }
+
+        .tree-name {
+            margin-left: 4px;
+        }
+
+        .tree-aliases {
+            color: #888;
+            font-size: 12px;
+            margin-left: 6px;
+        }
+
+        .tree-description {
+            color: #666;
+            font-size: 12px;
+            margin-left: 10px;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tree-badges {
+            margin-left: auto;
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
 
         .badge {
-            font-size: 10px;
+            font-size: 9px;
             padding: 1px 5px;
             border-radius: 3px;
             text-transform: uppercase;
+            font-weight: 500;
         }
-        .badge-hidden { background: #6c757d; color: white; }
+        .badge-hidden { background: #e0e0e0; color: #666; }
         .badge-changed { background: #ffc107; color: #212529; }
 
-        .tree-children { margin-left: 20px; }
+        .tree-children {
+            margin-left: 16px;
+            border-left: 1px solid #e0e0e0;
+            padding-left: 4px;
+        }
+
         .tree-children.collapsed { display: none; }
 
         .details-panel {
@@ -212,6 +273,7 @@
             font-weight: 500;
             color: #666;
             padding-top: 6px;
+            flex-shrink: 0;
         }
 
         .field-value { flex: 1; }
@@ -283,6 +345,7 @@
         .option-header.change-visible { background: var(--bg-hidden-to-visible); }
         .option-header.change-hidden { background: var(--bg-visible-to-hidden); }
         .option-header.change-modified { background: var(--bg-modified); }
+        .option-header.my-change { box-shadow: inset 3px 0 0 var(--border-my-changes); }
 
         .option-name { font-family: 'SF Mono', 'Consolas', monospace; font-weight: 500; }
         .option-desc-preview {
@@ -323,6 +386,7 @@
             background: #fff;
             border-bottom: 1px solid #ddd;
             font-size: 12px;
+            flex-wrap: wrap;
         }
 
         .legend-item { display: flex; align-items: center; gap: 5px; }
@@ -330,7 +394,8 @@
         .legend-color.will-show { background: var(--bg-hidden-to-visible); }
         .legend-color.will-hide { background: var(--bg-visible-to-hidden); }
         .legend-color.modified { background: var(--bg-modified); }
-        .legend-color.my-change { border: 2px solid var(--border-my-changes); background: white; }
+        .legend-color.has-inside { background: var(--bg-has-changes-inside); }
+        .legend-color.my-change { box-shadow: inset 3px 0 0 var(--border-my-changes); background: white; border: 1px solid #ddd; }
 
         .modal-overlay {
             display: none;
@@ -391,10 +456,11 @@
     <div class="main">
         <div class="tree-panel">
             <div class="legend">
-                <div class="legend-item"><div class="legend-color will-show"></div> Will become visible</div>
-                <div class="legend-item"><div class="legend-color will-hide"></div> Will become hidden</div>
-                <div class="legend-item"><div class="legend-color modified"></div> Description changed</div>
-                <div class="legend-item"><div class="legend-color my-change"></div> My local change</div>
+                <div class="legend-item"><div class="legend-color will-show"></div> Will show</div>
+                <div class="legend-item"><div class="legend-color will-hide"></div> Will hide</div>
+                <div class="legend-item"><div class="legend-color modified"></div> Modified</div>
+                <div class="legend-item"><div class="legend-color has-inside"></div> Has changes inside</div>
+                <div class="legend-item"><div class="legend-color my-change"></div> My edit</div>
             </div>
             <div class="tree-controls">
                 <input type="text" id="searchInput" placeholder="Search commands..." oninput="filterTree()">
@@ -451,8 +517,9 @@ let MY_CHANGES = { changes: {}, comments: {} };
 // State
 // ============================================================================
 let selectedPath = null;
-let expandedNodes = new Set(['']);
+let expandedNodes = new Set(['ydbd']);
 let modalCallback = null;
+let changesCache = new Map(); // Cache for hasChangesInside calculations
 
 // ============================================================================
 // Initialization
@@ -461,6 +528,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         await loadData();
         loadFromLocalStorage();
+        rebuildChangesCache();
         renderTree();
         updateStats();
     } catch (err) {
@@ -496,6 +564,48 @@ function loadFromLocalStorage() {
 
 function saveToLocalStorage() {
     localStorage.setItem('ydbd-cli-editor-my-changes', JSON.stringify(MY_CHANGES));
+    rebuildChangesCache();
+}
+
+// ============================================================================
+// Changes cache - to efficiently check if parent has changes inside
+// ============================================================================
+function rebuildChangesCache() {
+    changesCache.clear();
+
+    function markPath(path) {
+        const parts = path.split('.');
+        let current = '';
+        for (const part of parts) {
+            current = current ? `${current}.${part}` : part;
+            changesCache.set(current, true);
+        }
+    }
+
+    // Mark all paths that have changes
+    for (const path of Object.keys(MY_CHANGES.changes || {})) {
+        markPath(path);
+    }
+    for (const path of Object.keys(MY_CHANGES.comments || {})) {
+        markPath(path);
+    }
+    for (const path of Object.keys(GLOBAL_TARGET?.changes || {})) {
+        markPath(path);
+    }
+    for (const path of Object.keys(GLOBAL_TARGET?.comments || {})) {
+        markPath(path);
+    }
+}
+
+function hasChangesInside(path) {
+    // Check if any path starts with this path
+    const prefix = path + '.';
+    for (const key of changesCache.keys()) {
+        if (key.startsWith(prefix)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // ============================================================================
@@ -510,119 +620,192 @@ function renderTree() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const visFilter = document.getElementById('visibilityFilter').value;
 
-    function renderCommand(cmd, path, prefix, isLast) {
-        const fullPath = path ? `${path}.${cmd.name}` : cmd.name;
-        const effectiveState = getEffectiveState(fullPath, cmd);
-        const changeType = getChangeType(fullPath, cmd, effectiveState);
-        const hasMyChange = hasLocalChange(fullPath);
+    // Create root ydbd node
+    const rootItem = document.createElement('div');
+    rootItem.className = 'tree-root';
 
-        if (searchTerm && !fullPath.toLowerCase().includes(searchTerm) &&
-            !cmd.description.toLowerCase().includes(searchTerm)) {
-            const hasMatchingChild = cmd.subcommands && Object.values(cmd.subcommands).some(sub =>
-                matchesSearch(sub, `${fullPath}.${sub.name}`, searchTerm)
-            );
-            if (!hasMatchingChild) return null;
+    const rootRow = document.createElement('div');
+    rootRow.className = 'tree-item-row visible-cmd';
+    if (selectedPath === 'ydbd') rootRow.classList.add('selected');
+    if (hasChangesInside('ydbd')) rootRow.classList.add('has-changes-inside');
+
+    const rootToggle = document.createElement('span');
+    rootToggle.className = 'tree-toggle expandable';
+    rootToggle.textContent = expandedNodes.has('ydbd') ? '▾' : '▸';
+    rootToggle.onclick = (e) => {
+        e.stopPropagation();
+        if (expandedNodes.has('ydbd')) {
+            expandedNodes.delete('ydbd');
+        } else {
+            expandedNodes.add('ydbd');
         }
+        renderTree();
+    };
+    rootRow.appendChild(rootToggle);
 
-        if (visFilter === 'visible' && !effectiveState.visible) return null;
-        if (visFilter === 'hidden' && effectiveState.visible) return null;
-        if (visFilter === 'changed' && !changeType && !hasMyChange) return null;
+    const rootName = document.createElement('span');
+    rootName.className = 'tree-name';
+    rootName.textContent = 'ydbd';
+    rootRow.appendChild(rootName);
 
-        const item = document.createElement('div');
-        item.className = 'tree-item';
+    rootRow.onclick = () => {
+        selectedPath = 'ydbd';
+        renderTree();
+        renderRootDetails();
+    };
 
-        const row = document.createElement('div');
-        row.className = 'tree-item-row';
-        if (!effectiveState.visible) row.classList.add('hidden-cmd');
-        if (changeType === 'visible') row.classList.add('change-visible');
-        if (changeType === 'hidden') row.classList.add('change-hidden');
-        if (changeType === 'modified') row.classList.add('change-modified');
-        if (hasMyChange) row.classList.add('my-change');
-        if (fullPath === selectedPath) row.classList.add('selected');
+    rootItem.appendChild(rootRow);
 
-        const prefixSpan = document.createElement('span');
-        prefixSpan.className = 'tree-prefix';
-        prefixSpan.textContent = prefix;
-        row.appendChild(prefixSpan);
-
-        const hasChildren = cmd.subcommands && Object.keys(cmd.subcommands).length > 0;
-        const toggle = document.createElement('span');
-        toggle.className = 'tree-toggle';
-        if (hasChildren) {
-            toggle.textContent = expandedNodes.has(fullPath) ? '▼' : '▶';
-            toggle.onclick = (e) => {
-                e.stopPropagation();
-                if (expandedNodes.has(fullPath)) {
-                    expandedNodes.delete(fullPath);
-                } else {
-                    expandedNodes.add(fullPath);
-                }
-                renderTree();
-            };
-        }
-        row.appendChild(toggle);
-
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'tree-name';
-        nameSpan.textContent = cmd.name;
-        row.appendChild(nameSpan);
-
-        if (cmd.aliases && cmd.aliases.length > 0) {
-            const aliasSpan = document.createElement('span');
-            aliasSpan.className = 'tree-aliases';
-            aliasSpan.textContent = `(${cmd.aliases.join(', ')})`;
-            row.appendChild(aliasSpan);
-        }
-
-        const badges = document.createElement('span');
-        badges.className = 'tree-badges';
-        if (!cmd.visible) {
-            const badge = document.createElement('span');
-            badge.className = 'badge badge-hidden';
-            badge.textContent = 'hidden';
-            badges.appendChild(badge);
-        }
-        if (changeType || hasMyChange) {
-            const badge = document.createElement('span');
-            badge.className = 'badge badge-changed';
-            badge.textContent = hasMyChange ? 'my edit' : 'changed';
-            badges.appendChild(badge);
-        }
-        row.appendChild(badges);
-
-        row.onclick = () => selectCommand(fullPath, cmd);
-        item.appendChild(row);
-
-        if (hasChildren) {
-            const children = document.createElement('div');
-            children.className = 'tree-children';
-            if (!expandedNodes.has(fullPath)) children.classList.add('collapsed');
-
-            const subCmds = Object.values(cmd.subcommands);
-            subCmds.forEach((sub, i) => {
-                const childPrefix = prefix + (isLast ? '   ' : '│  ');
-                const childIsLast = i === subCmds.length - 1;
-                const childNode = renderCommand(sub, fullPath, childPrefix + (childIsLast ? '└─ ' : '├─ '), childIsLast);
-                if (childNode) children.appendChild(childNode);
-            });
-
-            item.appendChild(children);
-        }
-
-        return item;
-    }
+    // Children container
+    const rootChildren = document.createElement('div');
+    rootChildren.className = 'tree-children';
+    if (!expandedNodes.has('ydbd')) rootChildren.classList.add('collapsed');
 
     const commands = Object.values(CURRENT_STATE.commands);
-    commands.forEach((cmd, i) => {
-        const isLast = i === commands.length - 1;
-        const node = renderCommand(cmd, '', isLast ? '└─ ' : '├─ ', isLast);
-        if (node) container.appendChild(node);
+    commands.forEach((cmd) => {
+        const node = renderCommand(cmd, 'ydbd', searchTerm, visFilter);
+        if (node) rootChildren.appendChild(node);
     });
+
+    rootItem.appendChild(rootChildren);
+    container.appendChild(rootItem);
+}
+
+function renderCommand(cmd, parentPath, searchTerm, visFilter) {
+    const fullPath = `${parentPath}.${cmd.name}`;
+    const effectiveState = getEffectiveState(fullPath, cmd);
+    const changeType = getChangeType(fullPath, cmd, effectiveState);
+    const hasMyChange = hasLocalChange(fullPath);
+    const hasInsideChanges = hasChangesInside(fullPath);
+
+    // Search filter
+    if (searchTerm && !fullPath.toLowerCase().includes(searchTerm) &&
+        !(cmd.description || '').toLowerCase().includes(searchTerm)) {
+        const hasMatchingChild = cmd.subcommands && Object.values(cmd.subcommands).some(sub =>
+            matchesSearch(sub, `${fullPath}.${sub.name}`, searchTerm)
+        );
+        if (!hasMatchingChild) return null;
+    }
+
+    // Visibility filter
+    if (visFilter === 'visible' && !effectiveState.visible) return null;
+    if (visFilter === 'hidden' && effectiveState.visible) return null;
+    if (visFilter === 'changed' && !changeType && !hasMyChange && !hasInsideChanges) return null;
+
+    const item = document.createElement('div');
+    item.className = 'tree-item';
+
+    const row = document.createElement('div');
+    row.className = 'tree-item-row';
+
+    // Visibility styling
+    if (effectiveState.visible) {
+        row.classList.add('visible-cmd');
+    } else {
+        row.classList.add('hidden-cmd');
+    }
+
+    // Change type styling (priority order)
+    if (changeType === 'visible') {
+        row.classList.add('change-visible');
+    } else if (changeType === 'hidden') {
+        row.classList.add('change-hidden');
+    } else if (changeType === 'modified') {
+        row.classList.add('change-modified');
+    } else if (hasInsideChanges) {
+        row.classList.add('has-changes-inside');
+    }
+
+    if (hasMyChange) row.classList.add('my-change');
+    if (fullPath === selectedPath) row.classList.add('selected');
+
+    const hasChildren = cmd.subcommands && Object.keys(cmd.subcommands).length > 0;
+
+    // Toggle
+    const toggle = document.createElement('span');
+    toggle.className = 'tree-toggle';
+    if (hasChildren) {
+        toggle.classList.add('expandable');
+        toggle.textContent = expandedNodes.has(fullPath) ? '▾' : '▸';
+        toggle.onclick = (e) => {
+            e.stopPropagation();
+            if (expandedNodes.has(fullPath)) {
+                expandedNodes.delete(fullPath);
+            } else {
+                expandedNodes.add(fullPath);
+            }
+            renderTree();
+        };
+    }
+    row.appendChild(toggle);
+
+    // Name
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'tree-name';
+    nameSpan.textContent = cmd.name;
+    row.appendChild(nameSpan);
+
+    // Aliases
+    if (cmd.aliases && cmd.aliases.length > 0) {
+        const aliasSpan = document.createElement('span');
+        aliasSpan.className = 'tree-aliases';
+        aliasSpan.textContent = `(${cmd.aliases.join(', ')})`;
+        row.appendChild(aliasSpan);
+    }
+
+    // Description preview
+    if (cmd.description) {
+        const descSpan = document.createElement('span');
+        descSpan.className = 'tree-description';
+        descSpan.textContent = cmd.description;
+        row.appendChild(descSpan);
+    }
+
+    // Badges
+    const badges = document.createElement('span');
+    badges.className = 'tree-badges';
+    if (!cmd.visible) {
+        const badge = document.createElement('span');
+        badge.className = 'badge badge-hidden';
+        badge.textContent = 'hidden';
+        badges.appendChild(badge);
+    }
+    if (hasMyChange) {
+        const badge = document.createElement('span');
+        badge.className = 'badge badge-changed';
+        badge.textContent = 'my edit';
+        badges.appendChild(badge);
+    } else if (changeType) {
+        const badge = document.createElement('span');
+        badge.className = 'badge badge-changed';
+        badge.textContent = 'changed';
+        badges.appendChild(badge);
+    }
+    row.appendChild(badges);
+
+    row.onclick = () => selectCommand(fullPath, cmd);
+    item.appendChild(row);
+
+    // Children
+    if (hasChildren) {
+        const children = document.createElement('div');
+        children.className = 'tree-children';
+        if (!expandedNodes.has(fullPath)) children.classList.add('collapsed');
+
+        Object.values(cmd.subcommands).forEach((sub) => {
+            const childNode = renderCommand(sub, fullPath, searchTerm, visFilter);
+            if (childNode) children.appendChild(childNode);
+        });
+
+        item.appendChild(children);
+    }
+
+    return item;
 }
 
 function matchesSearch(cmd, path, searchTerm) {
     if (path.toLowerCase().includes(searchTerm)) return true;
-    if (cmd.description.toLowerCase().includes(searchTerm)) return true;
+    if ((cmd.description || '').toLowerCase().includes(searchTerm)) return true;
     if (cmd.subcommands) {
         return Object.values(cmd.subcommands).some(sub =>
             matchesSearch(sub, `${path}.${sub.name}`, searchTerm)
@@ -636,16 +819,20 @@ function matchesSearch(cmd, path, searchTerm) {
 // ============================================================================
 function getCommandByPath(path) {
     if (!CURRENT_STATE) return null;
+    if (path === 'ydbd') return null;
+
     const parts = path.split('.');
-    let cmd = CURRENT_STATE.commands[parts[0]];
-    for (let i = 1; i < parts.length && cmd; i++) {
+    if (parts[0] !== 'ydbd') return null;
+
+    let cmd = CURRENT_STATE.commands[parts[1]];
+    for (let i = 2; i < parts.length && cmd; i++) {
         cmd = cmd.subcommands?.[parts[i]];
     }
     return cmd;
 }
 
 function getEffectiveState(path, cmd) {
-    const myChange = MY_CHANGES.changes[path];
+    const myChange = MY_CHANGES.changes?.[path];
     const globalChange = GLOBAL_TARGET?.changes?.[path];
 
     return {
@@ -665,11 +852,14 @@ function getChangeType(path, cmd, effectiveState) {
 }
 
 function hasLocalChange(path) {
-    return MY_CHANGES.changes[path] !== undefined || MY_CHANGES.comments[path] !== undefined;
+    const hasChange = MY_CHANGES.changes?.[path] !== undefined &&
+                      Object.keys(MY_CHANGES.changes[path]).length > 0;
+    const hasComment = MY_CHANGES.comments?.[path] !== undefined;
+    return hasChange || hasComment;
 }
 
 function getEffectiveComment(path) {
-    return MY_CHANGES.comments[path] ?? GLOBAL_TARGET?.comments?.[path] ?? '';
+    return MY_CHANGES.comments?.[path] ?? GLOBAL_TARGET?.comments?.[path] ?? '';
 }
 
 // ============================================================================
@@ -681,10 +871,26 @@ function selectCommand(path, cmd) {
     renderDetails(path, cmd);
 }
 
+function renderRootDetails() {
+    const container = document.getElementById('detailsContent');
+    container.innerHTML = `
+        <div class="details-header">
+            <h2>ydbd</h2>
+            <div class="details-path">Root command</div>
+        </div>
+        <div class="details-section">
+            <h3>Info</h3>
+            <p>This is the root of the ydbd CLI command tree.</p>
+            <p>Select a subcommand from the tree to view and edit its details.</p>
+        </div>
+    `;
+}
+
 function renderDetails(path, cmd) {
     const container = document.getElementById('detailsContent');
     const effectiveState = getEffectiveState(path, cmd);
     const comment = getEffectiveComment(path);
+    const escapedPath = path.replace(/'/g, "\\'");
 
     let html = `
         <div class="details-header">
@@ -706,15 +912,15 @@ function renderDetails(path, cmd) {
                     <div class="visibility-toggle">
                         <label>
                             <input type="radio" name="visibility" value="true" ${effectiveState.visible ? 'checked' : ''}
-                                   onchange="updateVisibility('${path}', true)">
+                                   onchange="updateVisibility('${escapedPath}', true)">
                             Visible
                         </label>
                         <label>
                             <input type="radio" name="visibility" value="false" ${!effectiveState.visible ? 'checked' : ''}
-                                   onchange="updateVisibility('${path}', false)">
+                                   onchange="updateVisibility('${escapedPath}', false)">
                             Hidden
                         </label>
-                        <button class="reset-btn" onclick="resetField('${path}', 'visible')">Reset</button>
+                        <button class="reset-btn" onclick="resetField('${escapedPath}', 'visible')">Reset</button>
                     </div>
                 </div>
             </div>
@@ -732,8 +938,8 @@ function renderDetails(path, cmd) {
                 <div class="field-label">Target:</div>
                 <div class="field-value">
                     <input type="text" value="${escapeHtml(effectiveState.description)}"
-                           onchange="updateDescription('${path}', this.value)">
-                    <button class="reset-btn" onclick="resetField('${path}', 'description')">Reset</button>
+                           onchange="updateDescription('${escapedPath}', this.value)">
+                    <button class="reset-btn" onclick="resetField('${escapedPath}', 'description')">Reset</button>
                 </div>
             </div>
         </div>
@@ -744,7 +950,7 @@ function renderDetails(path, cmd) {
                 <div class="field-label"></div>
                 <div class="field-value">
                     <textarea placeholder="Add a comment for discussion..."
-                              onchange="updateComment('${path}', this.value)">${escapeHtml(comment)}</textarea>
+                              onchange="updateComment('${escapedPath}', this.value)">${escapeHtml(comment)}</textarea>
                 </div>
             </div>
         </div>
@@ -753,7 +959,7 @@ function renderDetails(path, cmd) {
     if (cmd.options && Object.keys(cmd.options).length > 0) {
         html += `
             <div class="details-section">
-                <h3>Options</h3>
+                <h3>Options (${Object.keys(cmd.options).length})</h3>
                 <div class="options-list">
                     ${renderOptions(path, cmd.options)}
                 </div>
@@ -768,22 +974,26 @@ function renderOptions(cmdPath, options) {
     return Object.entries(options).map(([name, opt]) => {
         const optPath = `${cmdPath}.${name}`;
         const effectiveOpt = getEffectiveOptionState(optPath, opt);
-        const changeType = getOptionChangeType(opt, effectiveOpt);
-        const hasMyChange = hasLocalChange(optPath);
+        const changeType = getOptionChangeType(optPath, opt, effectiveOpt);
+        const hasMyChange = hasLocalOptionChange(optPath);
+        const optComment = getEffectiveComment(optPath);
+        const escapedOptPath = optPath.replace(/'/g, "\\'");
+        const safeName = name.replace(/[^a-zA-Z0-9]/g, '_');
 
         let classes = 'option-header';
         if (!effectiveOpt.visible) classes += ' hidden-opt';
         if (changeType === 'visible') classes += ' change-visible';
-        if (changeType === 'hidden') classes += ' change-hidden';
-        if (changeType === 'modified') classes += ' change-modified';
+        else if (changeType === 'hidden') classes += ' change-hidden';
+        else if (changeType === 'modified') classes += ' change-modified';
+        if (hasMyChange) classes += ' my-change';
 
         return `
             <div class="option-item">
                 <div class="${classes}" onclick="toggleOption(this)">
                     <span class="option-name">${name}</span>
-                    <span class="option-desc-preview">${opt.description}</span>
+                    <span class="option-desc-preview">${opt.description || ''}</span>
                     ${opt.required ? '<span class="badge badge-hidden">required</span>' : ''}
-                    ${hasMyChange ? '<span class="badge badge-changed">my edit</span>' : ''}
+                    ${hasMyChange ? '<span class="badge badge-changed">my edit</span>' : (changeType ? '<span class="badge badge-changed">changed</span>' : '')}
                 </div>
                 <div class="option-details">
                     <div class="field-row">
@@ -791,25 +1001,38 @@ function renderOptions(cmdPath, options) {
                         <div class="field-value">
                             <div class="visibility-toggle">
                                 <label>
-                                    <input type="radio" name="opt-vis-${name.replace(/[^a-zA-Z0-9]/g, '_')}" value="true" ${effectiveOpt.visible ? 'checked' : ''}
-                                           onchange="updateOptionVisibility('${optPath}', true)">
+                                    <input type="radio" name="opt-vis-${safeName}" value="true" ${effectiveOpt.visible ? 'checked' : ''}
+                                           onchange="updateOptionVisibility('${escapedOptPath}', true)">
                                     Visible
                                 </label>
                                 <label>
-                                    <input type="radio" name="opt-vis-${name.replace(/[^a-zA-Z0-9]/g, '_')}" value="false" ${!effectiveOpt.visible ? 'checked' : ''}
-                                           onchange="updateOptionVisibility('${optPath}', false)">
+                                    <input type="radio" name="opt-vis-${safeName}" value="false" ${!effectiveOpt.visible ? 'checked' : ''}
+                                           onchange="updateOptionVisibility('${escapedOptPath}', false)">
                                     Hidden
                                 </label>
-                                <button class="reset-btn" onclick="resetField('${optPath}', 'visible')">Reset</button>
+                                <button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'visible')">Reset</button>
                             </div>
                         </div>
                     </div>
                     <div class="field-row">
-                        <div class="field-label">Description:</div>
+                        <div class="field-label">Current desc:</div>
+                        <div class="field-value">
+                            <div class="field-current">${opt.description || '(empty)'}</div>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-label">Target desc:</div>
                         <div class="field-value">
                             <input type="text" value="${escapeHtml(effectiveOpt.description)}"
-                                   onchange="updateOptionDescription('${optPath}', this.value)">
-                            <button class="reset-btn" onclick="resetField('${optPath}', 'description')">Reset</button>
+                                   onchange="updateOptionDescription('${escapedOptPath}', this.value)">
+                            <button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'description')">Reset</button>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-label">Comment:</div>
+                        <div class="field-value">
+                            <textarea placeholder="Add a comment..."
+                                      onchange="updateComment('${escapedOptPath}', this.value)">${escapeHtml(optComment)}</textarea>
                         </div>
                     </div>
                 </div>
@@ -819,7 +1042,7 @@ function renderOptions(cmdPath, options) {
 }
 
 function getEffectiveOptionState(path, opt) {
-    const myChange = MY_CHANGES.changes[path];
+    const myChange = MY_CHANGES.changes?.[path];
     const globalChange = GLOBAL_TARGET?.changes?.[path];
 
     return {
@@ -828,7 +1051,7 @@ function getEffectiveOptionState(path, opt) {
     };
 }
 
-function getOptionChangeType(opt, effectiveOpt) {
+function getOptionChangeType(path, opt, effectiveOpt) {
     if (opt.visible !== effectiveOpt.visible) {
         return effectiveOpt.visible ? 'visible' : 'hidden';
     }
@@ -836,6 +1059,13 @@ function getOptionChangeType(opt, effectiveOpt) {
         return 'modified';
     }
     return null;
+}
+
+function hasLocalOptionChange(path) {
+    const hasChange = MY_CHANGES.changes?.[path] !== undefined &&
+                      Object.keys(MY_CHANGES.changes[path]).length > 0;
+    const hasComment = MY_CHANGES.comments?.[path] !== undefined;
+    return hasChange || hasComment;
 }
 
 function toggleOption(header) {
@@ -848,28 +1078,48 @@ function toggleOption(header) {
 // ============================================================================
 function updateVisibility(path, visible) {
     const cmd = getCommandByPath(path);
-    if (cmd.visible === visible) {
-        delete MY_CHANGES.changes[path]?.visible;
-        if (MY_CHANGES.changes[path] && Object.keys(MY_CHANGES.changes[path]).length === 0) {
-            delete MY_CHANGES.changes[path];
+    if (!cmd) return;
+
+    const originalVisible = cmd.visible;
+    const globalVisible = GLOBAL_TARGET?.changes?.[path]?.visible;
+    const targetVisible = globalVisible ?? originalVisible;
+
+    if (targetVisible === visible) {
+        // Same as target, remove my change
+        if (MY_CHANGES.changes?.[path]) {
+            delete MY_CHANGES.changes[path].visible;
+            if (Object.keys(MY_CHANGES.changes[path]).length === 0) {
+                delete MY_CHANGES.changes[path];
+            }
         }
     } else {
+        MY_CHANGES.changes = MY_CHANGES.changes || {};
         MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
         MY_CHANGES.changes[path].visible = visible;
     }
     saveToLocalStorage();
     renderTree();
+    renderDetails(path, cmd);
     updateStats();
 }
 
 function updateDescription(path, description) {
     const cmd = getCommandByPath(path);
-    if (cmd.description === description) {
-        delete MY_CHANGES.changes[path]?.description;
-        if (MY_CHANGES.changes[path] && Object.keys(MY_CHANGES.changes[path]).length === 0) {
-            delete MY_CHANGES.changes[path];
+    if (!cmd) return;
+
+    const originalDesc = cmd.description;
+    const globalDesc = GLOBAL_TARGET?.changes?.[path]?.description;
+    const targetDesc = globalDesc ?? originalDesc;
+
+    if (targetDesc === description) {
+        if (MY_CHANGES.changes?.[path]) {
+            delete MY_CHANGES.changes[path].description;
+            if (Object.keys(MY_CHANGES.changes[path]).length === 0) {
+                delete MY_CHANGES.changes[path];
+            }
         }
     } else {
+        MY_CHANGES.changes = MY_CHANGES.changes || {};
         MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
         MY_CHANGES.changes[path].description = description;
     }
@@ -879,34 +1129,85 @@ function updateDescription(path, description) {
 }
 
 function updateComment(path, comment) {
+    MY_CHANGES.comments = MY_CHANGES.comments || {};
     if (comment.trim()) {
         MY_CHANGES.comments[path] = comment;
     } else {
         delete MY_CHANGES.comments[path];
     }
     saveToLocalStorage();
+    renderTree();
 }
 
 function updateOptionVisibility(path, visible) {
-    MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
-    MY_CHANGES.changes[path].visible = visible;
+    // Get original option
+    const parts = path.split('.');
+    const optName = parts.pop();
+    const cmdPath = parts.join('.');
+    const cmd = getCommandByPath(cmdPath);
+    const opt = cmd?.options?.[optName];
+    if (!opt) return;
+
+    const originalVisible = opt.visible;
+    const globalVisible = GLOBAL_TARGET?.changes?.[path]?.visible;
+    const targetVisible = globalVisible ?? originalVisible;
+
+    if (targetVisible === visible) {
+        if (MY_CHANGES.changes?.[path]) {
+            delete MY_CHANGES.changes[path].visible;
+            if (Object.keys(MY_CHANGES.changes[path]).length === 0) {
+                delete MY_CHANGES.changes[path];
+            }
+        }
+    } else {
+        MY_CHANGES.changes = MY_CHANGES.changes || {};
+        MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
+        MY_CHANGES.changes[path].visible = visible;
+    }
     saveToLocalStorage();
     if (selectedPath) {
-        const cmd = getCommandByPath(selectedPath);
-        renderDetails(selectedPath, cmd);
+        const selectedCmd = getCommandByPath(selectedPath);
+        if (selectedCmd) renderDetails(selectedPath, selectedCmd);
     }
+    renderTree();
     updateStats();
 }
 
 function updateOptionDescription(path, description) {
-    MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
-    MY_CHANGES.changes[path].description = description;
+    const parts = path.split('.');
+    const optName = parts.pop();
+    const cmdPath = parts.join('.');
+    const cmd = getCommandByPath(cmdPath);
+    const opt = cmd?.options?.[optName];
+    if (!opt) return;
+
+    const originalDesc = opt.description;
+    const globalDesc = GLOBAL_TARGET?.changes?.[path]?.description;
+    const targetDesc = globalDesc ?? originalDesc;
+
+    if (targetDesc === description) {
+        if (MY_CHANGES.changes?.[path]) {
+            delete MY_CHANGES.changes[path].description;
+            if (Object.keys(MY_CHANGES.changes[path]).length === 0) {
+                delete MY_CHANGES.changes[path];
+            }
+        }
+    } else {
+        MY_CHANGES.changes = MY_CHANGES.changes || {};
+        MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
+        MY_CHANGES.changes[path].description = description;
+    }
     saveToLocalStorage();
+    if (selectedPath) {
+        const selectedCmd = getCommandByPath(selectedPath);
+        if (selectedCmd) renderDetails(selectedPath, selectedCmd);
+    }
+    renderTree();
     updateStats();
 }
 
 function resetField(path, field) {
-    if (MY_CHANGES.changes[path]) {
+    if (MY_CHANGES.changes?.[path]) {
         delete MY_CHANGES.changes[path][field];
         if (Object.keys(MY_CHANGES.changes[path]).length === 0) {
             delete MY_CHANGES.changes[path];
@@ -916,8 +1217,24 @@ function resetField(path, field) {
     renderTree();
     if (selectedPath) {
         const cmd = getCommandByPath(selectedPath);
-        renderDetails(selectedPath, cmd);
+        if (cmd) renderDetails(selectedPath, cmd);
     }
+    updateStats();
+}
+
+function resetOptionField(path, field) {
+    if (MY_CHANGES.changes?.[path]) {
+        delete MY_CHANGES.changes[path][field];
+        if (Object.keys(MY_CHANGES.changes[path]).length === 0) {
+            delete MY_CHANGES.changes[path];
+        }
+    }
+    saveToLocalStorage();
+    if (selectedPath) {
+        const cmd = getCommandByPath(selectedPath);
+        if (cmd) renderDetails(selectedPath, cmd);
+    }
+    renderTree();
     updateStats();
 }
 
@@ -931,20 +1248,20 @@ function resetMyChanges() {
         renderTree();
         if (selectedPath) {
             const cmd = getCommandByPath(selectedPath);
-            renderDetails(selectedPath, cmd);
+            if (cmd) renderDetails(selectedPath, cmd);
         }
         updateStats();
     });
 }
 
 function resetAllToOriginal() {
-    showModal('Reset All to Original', 'This will reset your local changes to match the global target. Are you sure?', () => {
+    showModal('Reset All to Original', 'This will reset your local changes. Are you sure?', () => {
         MY_CHANGES = { changes: {}, comments: {} };
         saveToLocalStorage();
         renderTree();
         if (selectedPath) {
             const cmd = getCommandByPath(selectedPath);
-            renderDetails(selectedPath, cmd);
+            if (cmd) renderDetails(selectedPath, cmd);
         }
         updateStats();
     });
@@ -955,8 +1272,8 @@ function exportChanges() {
         version: "1.0",
         exportedAt: new Date().toISOString(),
         basedOnTarget: GLOBAL_TARGET?.version || "1.0",
-        changes: MY_CHANGES.changes,
-        comments: MY_CHANGES.comments
+        changes: MY_CHANGES.changes || {},
+        comments: MY_CHANGES.comments || {}
     };
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -976,17 +1293,15 @@ function importChanges(event) {
     reader.onload = (e) => {
         try {
             const data = JSON.parse(e.target.result);
-            if (data.changes) {
-                MY_CHANGES = {
-                    changes: data.changes || {},
-                    comments: data.comments || {}
-                };
-            }
+            MY_CHANGES = {
+                changes: data.changes || {},
+                comments: data.comments || {}
+            };
             saveToLocalStorage();
             renderTree();
             if (selectedPath) {
                 const cmd = getCommandByPath(selectedPath);
-                renderDetails(selectedPath, cmd);
+                if (cmd) renderDetails(selectedPath, cmd);
             }
             updateStats();
             alert('Changes imported successfully!');
@@ -1008,19 +1323,20 @@ function filterTree() {
 function toggleExpandAll() {
     const expandAll = document.getElementById('expandAll').checked;
     if (expandAll) {
+        expandedNodes.add('ydbd');
         function addAllPaths(commands, prefix) {
             Object.entries(commands).forEach(([name, cmd]) => {
-                const path = prefix ? `${prefix}.${name}` : name;
+                const path = `${prefix}.${name}`;
                 expandedNodes.add(path);
                 if (cmd.subcommands) {
                     addAllPaths(cmd.subcommands, path);
                 }
             });
         }
-        addAllPaths(CURRENT_STATE.commands, '');
+        addAllPaths(CURRENT_STATE.commands, 'ydbd');
     } else {
         expandedNodes.clear();
-        expandedNodes.add('');
+        expandedNodes.add('ydbd');
     }
     renderTree();
 }
@@ -1032,7 +1348,7 @@ function updateStats() {
 
     function countCommands(commands, prefix) {
         Object.entries(commands).forEach(([name, cmd]) => {
-            const path = prefix ? `${prefix}.${name}` : name;
+            const path = `${prefix}.${name}`;
             const effectiveState = getEffectiveState(path, cmd);
 
             if (effectiveState.visible) visible++;
@@ -1048,7 +1364,7 @@ function updateStats() {
         });
     }
 
-    countCommands(CURRENT_STATE.commands, '');
+    countCommands(CURRENT_STATE.commands, 'ydbd');
 
     document.getElementById('statVisible').textContent = visible;
     document.getElementById('statHidden').textContent = hidden;
