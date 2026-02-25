@@ -317,13 +317,23 @@
         .reset-btn {
             font-size: 11px;
             padding: 2px 8px;
-            margin-left: 10px;
             background: #f0f0f0;
             border: 1px solid #ccc;
             border-radius: 3px;
             cursor: pointer;
         }
         .reset-btn:hover { background: #e0e0e0; }
+
+        .field-with-reset {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .reset-row {
+            display: flex;
+            justify-content: flex-start;
+        }
 
         .options-list { margin-top: 10px; }
 
@@ -440,6 +450,82 @@
             border-radius: 4px;
             margin: 20px;
         }
+
+        /* Save Modal Styles */
+        .save-modal {
+            max-width: 550px;
+        }
+
+        .save-intro {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .save-step {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .save-step:last-of-type {
+            border-bottom: none;
+            margin-bottom: 10px;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: #007bff;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .step-desc {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .step-desc kbd {
+            background: #eee;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        #copyStatus {
+            margin-left: 10px;
+            font-size: 13px;
+        }
+
+        #copyStatus.copy-success {
+            color: #28a745;
+        }
+
+        #copyStatus.copy-error {
+            color: #dc3545;
+        }
+
+        .copy-icon, .gh-icon {
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
@@ -448,9 +534,61 @@
         <div class="header-buttons">
             <button class="btn-secondary" onclick="resetMyChanges()">Reset My Changes</button>
             <button class="btn-warning" onclick="resetAllToOriginal()">Reset All to Original</button>
-            <button class="btn-primary" onclick="exportChanges()">Export My Changes</button>
-            <button class="btn-secondary" onclick="document.getElementById('importFile').click()">Import Changes</button>
+            <button class="btn-primary" onclick="saveChanges()">Save Changes</button>
+            <button class="btn-secondary" onclick="exportChanges()">Export JSON</button>
+            <button class="btn-secondary" onclick="document.getElementById('importFile').click()">Import JSON</button>
             <input type="file" id="importFile" style="display:none" accept=".json" onchange="importChanges(event)">
+        </div>
+    </div>
+
+    <!-- Save Modal with Instructions -->
+    <div class="modal-overlay" id="saveModal">
+        <div class="modal save-modal">
+            <h3>Save Changes to GitHub</h3>
+            <p class="save-intro">Follow these steps to submit your changes as a Pull Request:</p>
+
+            <div class="save-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div class="step-title">Copy your changes</div>
+                    <div class="step-desc">Click the button to copy JSON with your changes to clipboard</div>
+                    <button class="btn-primary" onclick="copyChangesToClipboard()">
+                        <span class="copy-icon">📋</span> Copy to Clipboard
+                    </button>
+                    <span id="copyStatus"></span>
+                </div>
+            </div>
+
+            <div class="save-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div class="step-title">Open GitHub editor</div>
+                    <div class="step-desc">This will open the target file in GitHub's editor</div>
+                    <button class="btn-primary" onclick="openGitHubEditor()">
+                        <span class="gh-icon">→</span> Open target-state.json on GitHub
+                    </button>
+                </div>
+            </div>
+
+            <div class="save-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div class="step-title">Replace file contents</div>
+                    <div class="step-desc">Select all text in the editor (<kbd>Ctrl+A</kbd> / <kbd>⌘+A</kbd>) and paste your changes (<kbd>Ctrl+V</kbd> / <kbd>⌘+V</kbd>)</div>
+                </div>
+            </div>
+
+            <div class="save-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div class="step-title">Create Pull Request</div>
+                    <div class="step-desc">Scroll down, select <strong>"Create a new branch"</strong>, enter a description, and click <strong>"Propose changes"</strong></div>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-secondary" onclick="closeSaveModal()">Close</button>
+            </div>
         </div>
     </div>
 
@@ -978,10 +1116,10 @@ function renderDetails(path, cmd) {
             </div>
             <div class="field-row">
                 <div class="field-label">Target:</div>
-                <div class="field-value">
+                <div class="field-value field-with-reset">
                     <textarea class="auto-resize" onchange="updateDescription('${escapedPath}', this.value)"
                               oninput="autoResizeTextarea(this)">${escapeHtml(effectiveState.description)}</textarea>
-                    <button class="reset-btn" onclick="resetField('${escapedPath}', 'description')">Reset</button>
+                    <div class="reset-row"><button class="reset-btn" onclick="resetField('${escapedPath}', 'description')">Reset</button></div>
                 </div>
             </div>
         </div>
@@ -1069,7 +1207,7 @@ function renderOptions(cmdPath, options) {
                                            onchange="updateOptionVisibility('${escapedOptPath}', false)">
                                     Hidden
                                 </label>
-                                <button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'visible')">Reset</button>
+                                <button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'visible'); event.stopPropagation();">Reset</button>
                             </div>
                         </div>
                     </div>
@@ -1081,10 +1219,10 @@ function renderOptions(cmdPath, options) {
                     </div>
                     <div class="field-row">
                         <div class="field-label">Target desc:</div>
-                        <div class="field-value">
+                        <div class="field-value field-with-reset">
                             <textarea class="auto-resize" onchange="updateOptionDescription('${escapedOptPath}', this.value)"
                                       oninput="autoResizeTextarea(this)">${escapeHtml(effectiveOpt.description)}</textarea>
-                            <button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'description')">Reset</button>
+                            <div class="reset-row"><button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'description'); event.stopPropagation();">Reset</button></div>
                         </div>
                     </div>
                     <div class="field-row">
@@ -1299,10 +1437,34 @@ function resetOptionField(path, field) {
         }
     }
     saveToLocalStorage();
+
+    // Remember which options were expanded before re-rendering
+    const expandedOptions = new Set();
+    document.querySelectorAll('.option-details.expanded').forEach(el => {
+        const optItem = el.closest('.option-item');
+        const header = optItem?.querySelector('.option-header .option-name');
+        if (header) expandedOptions.add(header.textContent);
+    });
+
     if (selectedPath) {
         const cmd = getCommandByPath(selectedPath);
         if (cmd) renderDetails(selectedPath, cmd);
     }
+
+    // Restore expanded state
+    expandedOptions.forEach(optName => {
+        const headers = document.querySelectorAll('.option-header .option-name');
+        headers.forEach(nameEl => {
+            if (nameEl.textContent === optName) {
+                const details = nameEl.closest('.option-item')?.querySelector('.option-details');
+                if (details) {
+                    details.classList.add('expanded');
+                    details.querySelectorAll('.auto-resize').forEach(autoResizeTextarea);
+                }
+            }
+        });
+    });
+
     renderTree();
     updateStats();
 }
@@ -1460,6 +1622,62 @@ function closeModal() {
 function confirmModalAction() {
     if (modalCallback) modalCallback();
     closeModal();
+}
+
+// ============================================================================
+// Save to GitHub
+// ============================================================================
+
+const GITHUB_CONFIG = {
+    owner: 'pnv1',
+    repo: 'ydbd--help',
+    branch: 'main',
+    targetFile: 'target-state.json'
+};
+
+function saveChanges() {
+    const hasChanges = (MY_CHANGES.changes && Object.keys(MY_CHANGES.changes).length > 0) ||
+                       (MY_CHANGES.comments && Object.keys(MY_CHANGES.comments).length > 0);
+
+    if (!hasChanges) {
+        alert('No changes to save.');
+        return;
+    }
+
+    document.getElementById('saveModal').classList.add('active');
+    document.getElementById('copyStatus').textContent = '';
+    document.getElementById('copyStatus').className = '';
+}
+
+function closeSaveModal() {
+    document.getElementById('saveModal').classList.remove('active');
+}
+
+function copyChangesToClipboard() {
+    const changesData = {
+        ...MY_CHANGES,
+        meta: {
+            savedAt: new Date().toISOString(),
+            version: CURRENT_STATE.version
+        }
+    };
+
+    const jsonContent = JSON.stringify(changesData, null, 2);
+
+    navigator.clipboard.writeText(jsonContent).then(() => {
+        const statusEl = document.getElementById('copyStatus');
+        statusEl.textContent = 'Copied to clipboard!';
+        statusEl.className = 'copy-success';
+    }).catch(err => {
+        const statusEl = document.getElementById('copyStatus');
+        statusEl.textContent = 'Failed to copy. Please select and copy manually.';
+        statusEl.className = 'copy-error';
+    });
+}
+
+function openGitHubEditor() {
+    const url = `https://github.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/edit/${GITHUB_CONFIG.branch}/${GITHUB_CONFIG.targetFile}`;
+    window.open(url, '_blank');
 }
     </script>
 </body>
