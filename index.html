@@ -1500,9 +1500,8 @@ function resetAllToOriginal() {
 
 function exportChanges() {
     const exportData = {
-        version: "1.0",
         exportedAt: new Date().toISOString(),
-        basedOnTarget: GLOBAL_TARGET?.version || "1.0",
+        basedOnCurrentState: CURRENT_STATE?.version || "unknown",
         changes: MY_CHANGES.changes || {},
         comments: MY_CHANGES.comments || {}
     };
@@ -1655,11 +1654,10 @@ function closeSaveModal() {
 
 function copyChangesToClipboard() {
     const changesData = {
-        ...MY_CHANGES,
-        meta: {
-            savedAt: new Date().toISOString(),
-            version: CURRENT_STATE.version
-        }
+        exportedAt: new Date().toISOString(),
+        basedOnCurrentState: CURRENT_STATE?.version || "unknown",
+        changes: MY_CHANGES.changes || {},
+        comments: MY_CHANGES.comments || {}
     };
 
     const jsonContent = JSON.stringify(changesData, null, 2);
