@@ -677,6 +677,7 @@ let MY_CHANGES = { changes: {}, comments: {} };
 // State
 // ============================================================================
 let selectedPath = null;
+let selectedCmd = null;
 let expandedNodes = new Set(['ydbd']);
 let modalCallback = null;
 let changesCache = new Map(); // Cache for hasChangesInside calculations
@@ -745,15 +746,15 @@ function autoResizeTextarea(textarea) {
 
 function refreshDetailsPreservingState() {
     if (!selectedPath) return;
-    const cmd = getCommandByPath(selectedPath);
-    if (!cmd) return;
 
+    // Save expanded options
     const expandedOptions = new Set();
     document.querySelectorAll('.option-details.expanded').forEach(el => {
         const header = el.closest('.option-item')?.querySelector('.option-name');
         if (header) expandedOptions.add(header.textContent);
     });
 
+    // Save focus
     const focusedEl = document.activeElement;
     let focusInfo = null;
     if (focusedEl && focusedEl.closest('.details-panel')) {
@@ -769,8 +770,16 @@ function refreshDetailsPreservingState() {
         }
     }
 
-    renderDetails(selectedPath, cmd);
+    // Re-render (use selectedCmd which was set by selectCommand)
+    if (selectedPath === 'ydbd') {
+        renderRootDetails();
+    } else {
+        const cmd = selectedCmd || getCommandByPath(selectedPath);
+        if (!cmd) return;
+        renderDetails(selectedPath, cmd);
+    }
 
+    // Restore expanded options
     expandedOptions.forEach(optName => {
         document.querySelectorAll('.option-header .option-name').forEach(nameEl => {
             if (nameEl.textContent === optName) {
@@ -783,6 +792,7 @@ function refreshDetailsPreservingState() {
         });
     });
 
+    // Restore focus
     if (focusInfo) {
         const optItems = document.querySelectorAll('.option-item');
         for (const item of optItems) {
@@ -890,6 +900,7 @@ function renderTree() {
 
     rootRow.onclick = () => {
         selectedPath = 'ydbd';
+        selectedCmd = null;
         renderTree();
         renderRootDetails();
     };
@@ -1143,6 +1154,7 @@ function getEffectiveComment(path) {
 // ============================================================================
 function selectCommand(path, cmd) {
     selectedPath = path;
+    selectedCmd = cmd;
     renderTree();
     renderDetails(path, cmd);
 }
@@ -1553,11 +1565,8 @@ function resetField(path, field) {
         }
     }
     saveToLocalStorage();
+    refreshDetailsPreservingState();
     renderTree();
-    if (selectedPath) {
-        const cmd = getCommandByPath(selectedPath);
-        if (cmd) renderDetails(selectedPath, cmd);
-    }
     updateStats();
 }
 
@@ -1569,34 +1578,7 @@ function resetOptionField(path, field) {
         }
     }
     saveToLocalStorage();
-
-    // Remember which options were expanded before re-rendering
-    const expandedOptions = new Set();
-    document.querySelectorAll('.option-details.expanded').forEach(el => {
-        const optItem = el.closest('.option-item');
-        const header = optItem?.querySelector('.option-header .option-name');
-        if (header) expandedOptions.add(header.textContent);
-    });
-
-    if (selectedPath) {
-        const cmd = getCommandByPath(selectedPath);
-        if (cmd) renderDetails(selectedPath, cmd);
-    }
-
-    // Restore expanded state
-    expandedOptions.forEach(optName => {
-        const headers = document.querySelectorAll('.option-header .option-name');
-        headers.forEach(nameEl => {
-            if (nameEl.textContent === optName) {
-                const details = nameEl.closest('.option-item')?.querySelector('.option-details');
-                if (details) {
-                    details.classList.add('expanded');
-                    details.querySelectorAll('.auto-resize').forEach(autoResizeTextarea);
-                }
-            }
-        });
-    });
-
+    refreshDetailsPreservingState();
     renderTree();
     updateStats();
 }
