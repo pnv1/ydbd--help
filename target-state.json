@@ -42,9 +42,6 @@
     "--password-file": {
       "description": "File with password to authenticate with\n  Password search order:\n    1. This option\n    2. \"YDB_PASSWORD\" environment variable",
       "comment": "Появился Password search order (берётся из tree root)."
-    },
-    "--no-password": {
-      "comment": "Без изменений описания. Артефакт (default: 0), появляющийся у флагов в tree root, нужно будет убрать отдельно."
     }
   },
   "commands": {
@@ -106,7 +103,7 @@
           "options": {
             "{-d|--db}": {
               "name": "{-d|--database}",
-              "comment": "Переименование --db → --database для консистентности с YDB CLI. Короткий алиас -d сохраняется."
+              "comment": "Переименование --db в --database для консистентности с YDB CLI. Короткий алиас -d сохраняется."
             }
           }
         }
