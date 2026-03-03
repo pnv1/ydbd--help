@@ -1,31 +1,98 @@
 {
-  "exportedAt": "2026-03-03T11:26:12.835Z",
+  "exportedAt": "2026-03-03T15:00:00.000Z",
   "basedOnCurrentState": "1.4",
   "rootOptions": {
     "{-d|--dump}": {
       "visible": false,
-      "comment": "Опция была видна в --help, хотя по факту не использовалась (?)"
+      "comment": "Отладочная опция. В текущем коде tree root (TClientCommandRootKikimrBase) уже регистрирует её с .Hidden(). Была видна только из-за дублирования определений опций в старом outer parser main.cpp."
+    },
+    "--ca-file": {
+      "visible": true,
+      "description": "File containing PEM encoded root certificates for SSL/TLS connections. If this parameter is empty, the default roots will be used. Environment variable: YDB_CA_FILE",
+      "comment": "Делаем видимой. Раньше была скрыта из-за HideOptions() в main.cpp — это баг, опция полезна и нужна пользователям. Описание берётся из tree root — включает env variable."
+    },
+    "{-k|--token}": {
+      "description": "security token",
+      "comment": "Описание теперь берётся из tree root (строчная буква). Раньше в outer parser было 'Security token' с заглавной."
+    },
+    "{-s|--server}": {
+      "description": "server address to connect",
+      "comment": "Описание из tree root. Убрана ссылка на $KIKIMR_SERVER, которая была в старом outer parser. Строчная буква."
+    },
+    "--client-cert-file": {
+      "description": "File containing client certificate for SSL/TLS connections (PKCS#12 or PEM-encoded). Environment variable: YDB_CLIENT_CERT_FILE",
+      "comment": "В описании появилась env variable YDB_CLIENT_CERT_FILE (берётся из tree root)."
+    },
+    "--client-cert-key-file": {
+      "description": "File containing PEM encoded client certificate private key for SSL/TLS connections. Environment variable: YDB_CLIENT_CERT_KEY_FILE",
+      "comment": "В описании появилась env variable YDB_CLIENT_CERT_KEY_FILE (берётся из tree root)."
+    },
+    "--client-cert-key-password-file": {
+      "description": "File containing password for client certificate private key (if key is encrypted). If key file is encrypted, but this option is not set, password will be asked interactively. Environment variables: YDB_CLIENT_CERT_KEY_PASSWORD, YDB_CLIENT_CERT_KEY_PASSWORD_FILE",
+      "comment": "В описании появились env variables (берётся из tree root)."
+    },
+    "{-f|--token-file}": {
+      "description": "Security token file\n  Token search order:\n    1. This option\n    2. \"YDB_TOKEN\" environment variable\n    3. Connection settings profile (\"~/.ydb/ProfileName/token\")\n    4. Default token file \"~/.ydb/token\" file",
+      "comment": "Появился Token search order (берётся из tree root TClientCommandRootKikimrBase)."
+    },
+    "--user": {
+      "description": "User name to authenticate with\n  User name search order:\n    1. This option\n    2. \"YDB_USER\" environment variable",
+      "comment": "Появился User name search order (берётся из tree root)."
+    },
+    "--password-file": {
+      "description": "File with password to authenticate with\n  Password search order:\n    1. This option\n    2. \"YDB_PASSWORD\" environment variable",
+      "comment": "Появился Password search order (берётся из tree root)."
+    },
+    "--no-password": {
+      "comment": "Без изменений описания. Артефакт (default: 0), появляющийся у флагов в tree root, нужно будет убрать отдельно."
     }
   },
   "commands": {
     "admin": {
       "subcommands": {
+        "blobstorage": {
+          "subcommands": {
+            "genconfig": {
+              "name": "gen-config",
+              "comment": "Переименование в kebab-case для консистентности с остальными командами."
+            }
+          }
+        },
         "debug": {
           "subcommands": {
             "interconnect": {
               "subcommands": {
                 "closeinputsession": {
-                  "options": {
-                    "--node": {
-                      "visible": false,
-                      "description": "Peer node id to close input session for",
-                      "comment": "Some test comment"
-                    }
-                  },
-                  "name": "close-input-session"
+                  "name": "close-input-session",
+                  "comment": "Переименование в kebab-case для консистентности с остальными командами."
                 },
                 "closepeersocket": {
-                  "name": "close-peer-socket"
+                  "name": "close-peer-socket",
+                  "comment": "Переименование в kebab-case для консистентности с остальными командами."
+                },
+                "poisonsession": {
+                  "name": "poison-session",
+                  "comment": "Переименование в kebab-case для консистентности с остальными командами."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "db": {
+      "subcommands": {
+        "schema": {
+          "subcommands": {
+            "table": {
+              "subcommands": {
+                "copy": {
+                  "options": {
+                    "{--database|--db}": {
+                      "name": "{--database|--db}",
+                      "comment": "Стоит рассмотреть переход к --database как основному длинному имени (для консистентности с YDB CLI, где используется --database). --db оставить алиасом."
+                    }
+                  }
                 }
               }
             }
@@ -38,9 +105,258 @@
         "list": {
           "options": {
             "{-d|--db}": {
-              "name": "{-d|--database}"
+              "name": "{-d|--database}",
+              "comment": "Переименование --db → --database для консистентности с YDB CLI. Короткий алиас -d сохраняется."
             }
           }
+        }
+      }
+    },
+    "server": {
+      "options": {
+        "--sys-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции actor_system_config файла --yaml-config."
+        },
+        "--naming-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции nameservice_config/hosts файла --yaml-config."
+        },
+        "--bs-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции blob_storage_config файла --yaml-config."
+        },
+        "--log-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции log файла --yaml-config."
+        },
+        "--ic-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции interconnect_config файла --yaml-config."
+        },
+        "--vdisk-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции vdisk_config файла --yaml-config."
+        },
+        "--drivemodel-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции drive_model_config файла --yaml-config."
+        },
+        "--kqp-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции kqp_config файла --yaml-config."
+        },
+        "--grpc-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции grpc_config файла --yaml-config."
+        },
+        "--pq-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции pq_config файла --yaml-config."
+        },
+        "--pqcd-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции pq_cluster_discovery_config файла --yaml-config."
+        },
+        "--netclassifier-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции net_classifier_config файла --yaml-config."
+        },
+        "--auth-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции auth_config файла --yaml-config."
+        },
+        "--auth-token-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции auth_config файла --yaml-config."
+        },
+        "--key-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции key_config файла --yaml-config."
+        },
+        "--sqs-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции sqs_config файла --yaml-config."
+        },
+        "--http-proxy-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции http_proxy_config файла --yaml-config."
+        },
+        "--fq-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции federated_query_config файла --yaml-config."
+        },
+        "--alloc-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции allocator_config файла --yaml-config."
+        },
+        "--pdisk-key-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции pdisk_key_config файла --yaml-config."
+        },
+        "--public-http-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции public_http_config файла --yaml-config."
+        },
+        "--feature-flags-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции feature_flags файла --yaml-config."
+        },
+        "--domains-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции domains_config файла --yaml-config."
+        },
+        "--channels-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции channel_profile_config файла --yaml-config."
+        },
+        "--cms-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции cms_config файла --yaml-config."
+        },
+        "--dyn-nodes-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции dynamic_node_config файла --yaml-config."
+        },
+        "--rb-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции resource_broker_config файла --yaml-config."
+        },
+        "--bootstrap-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции bootstrap_config файла --yaml-config."
+        },
+        "--incrhuge-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Incremental huge blob keeper — deprecated подсистема."
+        },
+        "--memorylog-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции memory_log_config файла --yaml-config."
+        },
+        "--metering-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции metering_config файла --yaml-config."
+        },
+        "--audit-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции audit_config файла --yaml-config."
+        },
+        "--mbus": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-port": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-trace-path": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-connect-timeout": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-cork": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-default-buffer-size": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-max-buffer-size": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-max-in-flight": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-max-in-flight-by-size": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-max-message-size": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-on-message-in-pool": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-on-reply-in-pool": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-per-con-max-in-flight": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-per-con-max-in-flight-by-size": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-send-threshold": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-send-timeout": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-socket-recv-buffer-size": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-socket-send-buffer-size": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-socket-tos": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-tcp-cork": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-total-timeout": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--mbus-worker-count": {
+          "visible": false,
+          "comment": "MessageBus — deprecated технология. Не используется в современных развёртываниях."
+        },
+        "--proxy": {
+          "visible": false,
+          "comment": "Привязка к прокси MessageBus. MessageBus — deprecated технология."
+        },
+        "--sqs-port": {
+          "visible": false,
+          "comment": "Порт SQS-совместимого API. Задаётся в секции sqs_config.http_server_config.port файла --yaml-config."
+        },
+        "--suppress-version-check": {
+          "visible": false,
+          "comment": "Задаётся в nameservice_config.suppress_version_check файла --yaml-config."
+        },
+        "--force-database-labels": {
+          "visible": false,
+          "comment": "Задаётся в monitoring_config.force_database_labels файла --yaml-config."
+        },
+        "--config-dir": {
+          "visible": false,
+          "comment": "Внутренняя опция. Задаётся в config_dir_path файла --yaml-config."
+        },
+        "--compile-inflight-limit": {
+          "visible": false,
+          "comment": "Задаётся в bootstrap_config.compile_service_config.inflight_limit файла --yaml-config."
+        },
+        "--yql-file": {
+          "visible": false,
+          "comment": "Устаревшая опция. Задаётся в секции yql_config файла --yaml-config."
         }
       }
     }
