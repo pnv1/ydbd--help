@@ -213,6 +213,7 @@
         .badge-will-show { background: #28a745; color: white; }
         .badge-will-hide { background: #dc3545; color: white; }
         .badge-edit-desc { background: #fd7e14; color: white; }
+        .badge-rename { background: #6f42c1; color: white; }
         .badge-my-edit { background: #007bff; color: white; }
 
         .comment-icon {
@@ -617,6 +618,7 @@
             <div class="legend">
                 <div class="legend-item"><span class="badge badge-will-show">делаем видимой</span></div>
                 <div class="legend-item"><span class="badge badge-will-hide">делаем скрытой</span></div>
+                <div class="legend-item"><span class="badge badge-rename">переименовываем</span></div>
                 <div class="legend-item"><span class="badge badge-edit-desc">меняем описание</span></div>
                 <div class="legend-item"><span class="badge badge-my-edit">моё изменение</span></div>
                 <div class="legend-item"><div class="legend-color has-inside"></div> есть изменения внутри</div>
@@ -671,7 +673,7 @@
 // ============================================================================
 let CURRENT_STATE = null;
 let GLOBAL_TARGET = null;
-let MY_CHANGES = { changes: {}, comments: {} };
+let MY_CHANGES = { rootOptions: {}, commands: {} };
 
 // ============================================================================
 // State
@@ -717,12 +719,17 @@ function loadFromLocalStorage() {
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
-            // Check if saved changes are for the same version of current-state
             if (parsed.basedOnVersion === CURRENT_STATE?.version) {
-                MY_CHANGES = parsed;
+                if (parsed.rootOptions || parsed.commands) {
+                    MY_CHANGES = parsed;
+                } else {
+                    console.warn('Old flat format in localStorage, resetting');
+                    MY_CHANGES = { rootOptions: {}, commands: {}, basedOnVersion: CURRENT_STATE?.version };
+                    saveToLocalStorage();
+                }
             } else {
                 console.warn('Saved changes are for a different version, resetting');
-                MY_CHANGES = { changes: {}, comments: {}, basedOnVersion: CURRENT_STATE?.version };
+                MY_CHANGES = { rootOptions: {}, commands: {}, basedOnVersion: CURRENT_STATE?.version };
                 saveToLocalStorage();
             }
         } catch (e) {
@@ -818,6 +825,190 @@ function refreshDetailsPreservingState() {
 }
 
 // ============================================================================
+// Hierarchical changes helpers
+// ============================================================================
+
+// Navigate to the changes object for a command path like "ydbd.admin.blobstorage"
+// source is MY_CHANGES or GLOBAL_TARGET
+function _getChangesNode(source, path, isOption) {
+    if (!source) return null;
+    const parts = path.split('.');
+    if (parts[0] !== 'ydbd') return null;
+
+    if (isOption) {
+        const optName = parts.pop();
+        const cmdParts = parts; // remaining: ["ydbd", ...cmdPath]
+        if (cmdParts.length === 1) {
+            // root option: ydbd.{optName}
+            return source.rootOptions?.[optName] ?? null;
+        }
+        // command option: ydbd.admin.--opt -> commands.admin.options["--opt"]
+        let node = source.commands;
+        for (let i = 1; i < cmdParts.length; i++) {
+            if (!node?.[cmdParts[i]]) return null;
+            node = node[cmdParts[i]];
+            if (i < cmdParts.length - 1) {
+                node = node.subcommands;
+                if (!node) return null;
+            }
+        }
+        return node?.options?.[optName] ?? null;
+    }
+
+    // Command path: ydbd.admin.blobstorage
+    if (parts.length === 1) return null; // "ydbd" root has no changes object
+    let node = source.commands;
+    for (let i = 1; i < parts.length; i++) {
+        if (!node?.[parts[i]]) return null;
+        node = node[parts[i]];
+        if (i < parts.length - 1) {
+            node = node.subcommands;
+            if (!node) return null;
+        }
+    }
+    return node;
+}
+
+function getChangesForCommand(path) {
+    return _getChangesNode(MY_CHANGES, path, false);
+}
+
+function getGlobalChangesForCommand(path) {
+    return _getChangesNode(GLOBAL_TARGET, path, false);
+}
+
+function getChangesForOption(path) {
+    return _getChangesNode(MY_CHANGES, path, true);
+}
+
+function getGlobalChangesForOption(path) {
+    return _getChangesNode(GLOBAL_TARGET, path, true);
+}
+
+function _ensureChangesNode(source, path, isOption) {
+    const parts = path.split('.');
+    if (parts[0] !== 'ydbd') return null;
+
+    if (isOption) {
+        const optName = parts.pop();
+        const cmdParts = parts;
+        if (cmdParts.length === 1) {
+            source.rootOptions = source.rootOptions || {};
+            source.rootOptions[optName] = source.rootOptions[optName] || {};
+            return source.rootOptions[optName];
+        }
+        source.commands = source.commands || {};
+        let node = source.commands;
+        for (let i = 1; i < cmdParts.length; i++) {
+            node[cmdParts[i]] = node[cmdParts[i]] || {};
+            node = node[cmdParts[i]];
+            if (i < cmdParts.length - 1) {
+                node.subcommands = node.subcommands || {};
+                node = node.subcommands;
+            }
+        }
+        node.options = node.options || {};
+        node.options[optName] = node.options[optName] || {};
+        return node.options[optName];
+    }
+
+    if (parts.length === 1) return null;
+    source.commands = source.commands || {};
+    let node = source.commands;
+    for (let i = 1; i < parts.length; i++) {
+        node[parts[i]] = node[parts[i]] || {};
+        node = node[parts[i]];
+        if (i < parts.length - 1) {
+            node.subcommands = node.subcommands || {};
+            node = node.subcommands;
+        }
+    }
+    return node;
+}
+
+// Value fields are the actual change data (not structural keys like subcommands/options)
+const STRUCTURAL_KEYS = new Set(['subcommands', 'options']);
+
+function _isEmptyChangesNode(obj) {
+    if (!obj || typeof obj !== 'object') return true;
+    for (const key of Object.keys(obj)) {
+        if (STRUCTURAL_KEYS.has(key)) {
+            if (!_isEmptyChangesNode(obj[key])) return false;
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
+function _cleanupEmptyParents(source, path, isOption) {
+    const parts = path.split('.');
+    if (parts[0] !== 'ydbd') return;
+
+    if (isOption) {
+        const optName = parts.pop();
+        const cmdParts = parts;
+        if (cmdParts.length === 1) {
+            if (source.rootOptions?.[optName] && _isEmptyChangesNode(source.rootOptions[optName])) {
+                delete source.rootOptions[optName];
+            }
+            if (source.rootOptions && Object.keys(source.rootOptions).length === 0) {
+                delete source.rootOptions;
+            }
+            return;
+        }
+        // Clean option node
+        const cmdNode = _getChangesNode(source, cmdParts.join('.'), false);
+        if (cmdNode?.options?.[optName] && _isEmptyChangesNode(cmdNode.options[optName])) {
+            delete cmdNode.options[optName];
+        }
+        if (cmdNode?.options && Object.keys(cmdNode.options).length === 0) {
+            delete cmdNode.options;
+        }
+        // Clean parent command chain
+        _cleanupEmptyParents(source, cmdParts.join('.'), false);
+        return;
+    }
+
+    // Clean command chain from deepest to shallowest
+    for (let depth = parts.length; depth >= 2; depth--) {
+        const subPath = parts.slice(0, depth).join('.');
+        const node = _getChangesNode(source, subPath, false);
+        if (node && _isEmptyChangesNode(node)) {
+            if (depth === 2) {
+                delete source.commands?.[parts[1]];
+            } else {
+                const parentPath = parts.slice(0, depth - 1).join('.');
+                const parent = _getChangesNode(source, parentPath, false);
+                if (parent?.subcommands) {
+                    delete parent.subcommands[parts[depth - 1]];
+                    if (Object.keys(parent.subcommands).length === 0) {
+                        delete parent.subcommands;
+                    }
+                }
+            }
+        } else {
+            break;
+        }
+    }
+    if (source.commands && Object.keys(source.commands).length === 0) {
+        delete source.commands;
+    }
+}
+
+function setChangeField(path, field, value, isOption) {
+    const node = _ensureChangesNode(MY_CHANGES, path, isOption);
+    if (node) node[field] = value;
+}
+
+function deleteChangeField(path, field, isOption) {
+    const node = isOption ? getChangesForOption(path) : getChangesForCommand(path);
+    if (!node) return;
+    delete node[field];
+    _cleanupEmptyParents(MY_CHANGES, path, isOption);
+}
+
+// ============================================================================
 // Changes cache - to efficiently check if parent has changes inside
 // ============================================================================
 function rebuildChangesCache() {
@@ -832,19 +1023,37 @@ function rebuildChangesCache() {
         }
     }
 
-    // Mark all paths that have changes
-    for (const path of Object.keys(MY_CHANGES.changes || {})) {
-        markPath(path);
+    function walkSource(source) {
+        if (!source) return;
+        // Root options
+        if (source.rootOptions) {
+            for (const optName of Object.keys(source.rootOptions)) {
+                if (_hasValueFields(source.rootOptions[optName])) {
+                    markPath(`ydbd.${optName}`);
+                }
+            }
+        }
+        // Commands tree
+        function walkCommands(cmds, prefix) {
+            if (!cmds) return;
+            for (const [name, node] of Object.entries(cmds)) {
+                const path = `${prefix}.${name}`;
+                if (_hasValueFields(node)) markPath(path);
+                if (node.options) {
+                    for (const optName of Object.keys(node.options)) {
+                        if (_hasValueFields(node.options[optName])) {
+                            markPath(`${path}.${optName}`);
+                        }
+                    }
+                }
+                if (node.subcommands) walkCommands(node.subcommands, path);
+            }
+        }
+        if (source.commands) walkCommands(source.commands, 'ydbd');
     }
-    for (const path of Object.keys(MY_CHANGES.comments || {})) {
-        markPath(path);
-    }
-    for (const path of Object.keys(GLOBAL_TARGET?.changes || {})) {
-        markPath(path);
-    }
-    for (const path of Object.keys(GLOBAL_TARGET?.comments || {})) {
-        markPath(path);
-    }
+
+    walkSource(MY_CHANGES);
+    walkSource(GLOBAL_TARGET);
 }
 
 function hasChangesInside(path) {
@@ -1026,6 +1235,7 @@ function renderCommand(cmd, parentPath, searchTerm, visFilter) {
         const badge = document.createElement('span');
         if (d === 'show') { badge.className = 'badge badge-will-show'; badge.textContent = 'делаем видимой'; }
         else if (d === 'hide') { badge.className = 'badge badge-will-hide'; badge.textContent = 'делаем скрытой'; }
+        else if (d === 'rename') { badge.className = 'badge badge-rename'; badge.textContent = 'переименовываем'; }
         else { badge.className = 'badge badge-edit-desc'; badge.textContent = 'меняем описание'; }
         badges.appendChild(badge);
     });
@@ -1093,12 +1303,13 @@ function getCommandByPath(path) {
 }
 
 function getEffectiveState(path, cmd) {
-    const myChange = MY_CHANGES.changes?.[path];
-    const globalChange = GLOBAL_TARGET?.changes?.[path];
+    const myChange = getChangesForCommand(path);
+    const globalChange = getGlobalChangesForCommand(path);
 
     return {
         visible: myChange?.visible ?? globalChange?.visible ?? cmd.visible,
-        description: myChange?.description ?? globalChange?.description ?? cmd.description
+        description: myChange?.description ?? globalChange?.description ?? cmd.description,
+        name: myChange?.name ?? globalChange?.name ?? cmd.name
     };
 }
 
@@ -1106,7 +1317,7 @@ function getChangeType(path, cmd, effectiveState) {
     if (cmd.visible !== effectiveState.visible) {
         return effectiveState.visible ? 'visible' : 'hidden';
     }
-    if (cmd.description !== effectiveState.description) {
+    if (cmd.name !== effectiveState.name || cmd.description !== effectiveState.description) {
         return 'modified';
     }
     return null;
@@ -1116,6 +1327,9 @@ function getChangeDetails(path, cmd, effectiveState) {
     const details = [];
     if (cmd.visible !== effectiveState.visible) {
         details.push(effectiveState.visible ? 'show' : 'hide');
+    }
+    if (cmd.name !== effectiveState.name) {
+        details.push('rename');
     }
     if (cmd.description !== effectiveState.description) {
         details.push('edit desc');
@@ -1128,6 +1342,9 @@ function getOptionChangeDetails(path, opt, effectiveOpt) {
     if (opt.visible !== effectiveOpt.visible) {
         details.push(effectiveOpt.visible ? 'show' : 'hide');
     }
+    if (opt.name !== effectiveOpt.name) {
+        details.push('rename');
+    }
     if (opt.description !== effectiveOpt.description) {
         details.push('edit desc');
     }
@@ -1135,18 +1352,42 @@ function getOptionChangeDetails(path, opt, effectiveOpt) {
 }
 
 function hasComment(path) {
-    return !!(MY_CHANGES.comments?.[path] || GLOBAL_TARGET?.comments?.[path]);
+    const isOpt = _isOptionPath(path);
+    const myNode = isOpt ? getChangesForOption(path) : getChangesForCommand(path);
+    const globalNode = isOpt ? getGlobalChangesForOption(path) : getGlobalChangesForCommand(path);
+    return !!(myNode?.comment || globalNode?.comment);
 }
 
 function hasLocalChange(path) {
-    const hasChange = MY_CHANGES.changes?.[path] !== undefined &&
-                      Object.keys(MY_CHANGES.changes[path]).length > 0;
-    const hasComment = MY_CHANGES.comments?.[path] !== undefined;
-    return hasChange || hasComment;
+    const node = getChangesForCommand(path);
+    return node ? _hasValueFields(node) : false;
+}
+
+function hasLocalOptionChange(optPath) {
+    const node = getChangesForOption(optPath);
+    return node ? _hasValueFields(node) : false;
+}
+
+function _hasValueFields(obj) {
+    if (!obj) return false;
+    for (const k of Object.keys(obj)) {
+        if (!STRUCTURAL_KEYS.has(k)) return true;
+    }
+    return false;
+}
+
+function _isOptionPath(path) {
+    const parts = path.split('.');
+    if (parts.length < 2) return false;
+    const last = parts[parts.length - 1];
+    return last.startsWith('-') || last.startsWith('{');
 }
 
 function getEffectiveComment(path) {
-    return MY_CHANGES.comments?.[path] ?? GLOBAL_TARGET?.comments?.[path] ?? '';
+    const isOpt = _isOptionPath(path);
+    const myNode = isOpt ? getChangesForOption(path) : getChangesForCommand(path);
+    const globalNode = isOpt ? getGlobalChangesForOption(path) : getGlobalChangesForCommand(path);
+    return myNode?.comment ?? globalNode?.comment ?? '';
 }
 
 // ============================================================================
@@ -1240,6 +1481,24 @@ function renderDetails(path, cmd) {
         </div>
 
         <div class="details-section">
+            <h3>Name</h3>
+            <div class="field-row">
+                <div class="field-label">Current:</div>
+                <div class="field-value">
+                    <div class="field-current">${cmd.name}</div>
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Target:</div>
+                <div class="field-value field-with-reset">
+                    <input type="text" value="${escapeHtml(effectiveState.name)}"
+                           onchange="updateName('${escapedPath}', this.value)">
+                    <div class="reset-row"><button class="reset-btn" onclick="resetField('${escapedPath}', 'name')">Reset</button></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="details-section">
             <h3>Description</h3>
             <div class="field-row">
                 <div class="field-label">Current:</div>
@@ -1322,6 +1581,7 @@ function renderOptions(cmdPath, options) {
         const detailBadges = optDetails.map(d => {
             if (d === 'show') return '<span class="badge badge-will-show">делаем видимой</span>';
             if (d === 'hide') return '<span class="badge badge-will-hide">делаем скрытой</span>';
+            if (d === 'rename') return '<span class="badge badge-rename">переименовываем</span>';
             return '<span class="badge badge-edit-desc">меняем описание</span>';
         }).join('');
 
@@ -1359,6 +1619,20 @@ function renderOptions(cmdPath, options) {
                         </div>
                     </div>
                     <div class="field-row">
+                        <div class="field-label">Current name:</div>
+                        <div class="field-value">
+                            <div class="field-current">${name}</div>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-label">Target name:</div>
+                        <div class="field-value field-with-reset">
+                            <input type="text" value="${escapeHtml(effectiveOpt.name)}"
+                                   onchange="updateOptionName('${escapedOptPath}', this.value)">
+                            <div class="reset-row"><button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'name'); event.stopPropagation();">Reset</button></div>
+                        </div>
+                    </div>
+                    <div class="field-row">
                         <div class="field-label">Current desc:</div>
                         <div class="field-value">
                             <div class="field-current">${opt.description || '(empty)'}</div>
@@ -1387,31 +1661,27 @@ function renderOptions(cmdPath, options) {
 }
 
 function getEffectiveOptionState(path, opt) {
-    const myChange = MY_CHANGES.changes?.[path];
-    const globalChange = GLOBAL_TARGET?.changes?.[path];
+    const myChange = getChangesForOption(path);
+    const globalChange = getGlobalChangesForOption(path);
 
     return {
         visible: myChange?.visible ?? globalChange?.visible ?? opt.visible,
-        description: myChange?.description ?? globalChange?.description ?? opt.description
+        description: myChange?.description ?? globalChange?.description ?? opt.description,
+        name: myChange?.name ?? globalChange?.name ?? path.split('.').pop()
     };
 }
 
 function getOptionChangeType(path, opt, effectiveOpt) {
+    const originalName = path.split('.').pop();
     if (opt.visible !== effectiveOpt.visible) {
         return effectiveOpt.visible ? 'visible' : 'hidden';
     }
-    if (opt.description !== effectiveOpt.description) {
+    if (originalName !== effectiveOpt.name || opt.description !== effectiveOpt.description) {
         return 'modified';
     }
     return null;
 }
 
-function hasLocalOptionChange(path) {
-    const hasChange = MY_CHANGES.changes?.[path] !== undefined &&
-                      Object.keys(MY_CHANGES.changes[path]).length > 0;
-    const hasComment = MY_CHANGES.comments?.[path] !== undefined;
-    return hasChange || hasComment;
-}
 
 function toggleOption(header) {
     const details = header.nextElementSibling;
@@ -1430,21 +1700,13 @@ function updateVisibility(path, visible) {
     if (!cmd) return;
 
     const originalVisible = cmd.visible;
-    const globalVisible = GLOBAL_TARGET?.changes?.[path]?.visible;
-    const targetVisible = globalVisible ?? originalVisible;
+    const globalChange = getGlobalChangesForCommand(path);
+    const targetVisible = globalChange?.visible ?? originalVisible;
 
     if (targetVisible === visible) {
-        // Same as target, remove my change
-        if (MY_CHANGES.changes?.[path]) {
-            delete MY_CHANGES.changes[path].visible;
-            if (Object.keys(MY_CHANGES.changes[path]).length === 0) {
-                delete MY_CHANGES.changes[path];
-            }
-        }
+        deleteChangeField(path, 'visible', false);
     } else {
-        MY_CHANGES.changes = MY_CHANGES.changes || {};
-        MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
-        MY_CHANGES.changes[path].visible = visible;
+        setChangeField(path, 'visible', visible, false);
     }
     saveToLocalStorage();
     renderTree();
@@ -1457,20 +1719,13 @@ function updateDescription(path, description) {
     if (!cmd) return;
 
     const originalDesc = cmd.description;
-    const globalDesc = GLOBAL_TARGET?.changes?.[path]?.description;
-    const targetDesc = globalDesc ?? originalDesc;
+    const globalChange = getGlobalChangesForCommand(path);
+    const targetDesc = globalChange?.description ?? originalDesc;
 
     if (targetDesc === description) {
-        if (MY_CHANGES.changes?.[path]) {
-            delete MY_CHANGES.changes[path].description;
-            if (Object.keys(MY_CHANGES.changes[path]).length === 0) {
-                delete MY_CHANGES.changes[path];
-            }
-        }
+        deleteChangeField(path, 'description', false);
     } else {
-        MY_CHANGES.changes = MY_CHANGES.changes || {};
-        MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
-        MY_CHANGES.changes[path].description = description;
+        setChangeField(path, 'description', description, false);
     }
     saveToLocalStorage();
     renderTree();
@@ -1478,12 +1733,47 @@ function updateDescription(path, description) {
     updateStats();
 }
 
-function updateComment(path, comment) {
-    MY_CHANGES.comments = MY_CHANGES.comments || {};
-    if (comment.trim()) {
-        MY_CHANGES.comments[path] = comment;
+function updateName(path, newName) {
+    const cmd = getCommandByPath(path);
+    if (!cmd) return;
+
+    const originalName = cmd.name;
+    const globalChange = getGlobalChangesForCommand(path);
+    const targetName = globalChange?.name ?? originalName;
+
+    if (targetName === newName) {
+        deleteChangeField(path, 'name', false);
     } else {
-        delete MY_CHANGES.comments[path];
+        setChangeField(path, 'name', newName, false);
+    }
+    saveToLocalStorage();
+    renderTree();
+    refreshDetailsPreservingState();
+    updateStats();
+}
+
+function updateOptionName(path, newName) {
+    const originalName = path.split('.').pop();
+    const globalChange = getGlobalChangesForOption(path);
+    const targetName = globalChange?.name ?? originalName;
+
+    if (targetName === newName) {
+        deleteChangeField(path, 'name', true);
+    } else {
+        setChangeField(path, 'name', newName, true);
+    }
+    saveToLocalStorage();
+    refreshDetailsPreservingState();
+    renderTree();
+    updateStats();
+}
+
+function updateComment(path, comment) {
+    const isOpt = _isOptionPath(path);
+    if (comment.trim()) {
+        setChangeField(path, 'comment', comment, isOpt);
+    } else {
+        deleteChangeField(path, 'comment', isOpt);
     }
     saveToLocalStorage();
     refreshDetailsPreservingState();
@@ -1510,20 +1800,13 @@ function updateOptionVisibility(path, visible) {
     if (!opt) return;
 
     const originalVisible = opt.visible;
-    const globalVisible = GLOBAL_TARGET?.changes?.[path]?.visible;
-    const targetVisible = globalVisible ?? originalVisible;
+    const globalChange = getGlobalChangesForOption(path);
+    const targetVisible = globalChange?.visible ?? originalVisible;
 
     if (targetVisible === visible) {
-        if (MY_CHANGES.changes?.[path]) {
-            delete MY_CHANGES.changes[path].visible;
-            if (Object.keys(MY_CHANGES.changes[path]).length === 0) {
-                delete MY_CHANGES.changes[path];
-            }
-        }
+        deleteChangeField(path, 'visible', true);
     } else {
-        MY_CHANGES.changes = MY_CHANGES.changes || {};
-        MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
-        MY_CHANGES.changes[path].visible = visible;
+        setChangeField(path, 'visible', visible, true);
     }
     saveToLocalStorage();
     refreshDetailsPreservingState();
@@ -1536,20 +1819,13 @@ function updateOptionDescription(path, description) {
     if (!opt) return;
 
     const originalDesc = opt.description;
-    const globalDesc = GLOBAL_TARGET?.changes?.[path]?.description;
-    const targetDesc = globalDesc ?? originalDesc;
+    const globalChange = getGlobalChangesForOption(path);
+    const targetDesc = globalChange?.description ?? originalDesc;
 
     if (targetDesc === description) {
-        if (MY_CHANGES.changes?.[path]) {
-            delete MY_CHANGES.changes[path].description;
-            if (Object.keys(MY_CHANGES.changes[path]).length === 0) {
-                delete MY_CHANGES.changes[path];
-            }
-        }
+        deleteChangeField(path, 'description', true);
     } else {
-        MY_CHANGES.changes = MY_CHANGES.changes || {};
-        MY_CHANGES.changes[path] = MY_CHANGES.changes[path] || {};
-        MY_CHANGES.changes[path].description = description;
+        setChangeField(path, 'description', description, true);
     }
     saveToLocalStorage();
     refreshDetailsPreservingState();
@@ -1558,12 +1834,7 @@ function updateOptionDescription(path, description) {
 }
 
 function resetField(path, field) {
-    if (MY_CHANGES.changes?.[path]) {
-        delete MY_CHANGES.changes[path][field];
-        if (Object.keys(MY_CHANGES.changes[path]).length === 0) {
-            delete MY_CHANGES.changes[path];
-        }
-    }
+    deleteChangeField(path, field, false);
     saveToLocalStorage();
     refreshDetailsPreservingState();
     renderTree();
@@ -1571,12 +1842,7 @@ function resetField(path, field) {
 }
 
 function resetOptionField(path, field) {
-    if (MY_CHANGES.changes?.[path]) {
-        delete MY_CHANGES.changes[path][field];
-        if (Object.keys(MY_CHANGES.changes[path]).length === 0) {
-            delete MY_CHANGES.changes[path];
-        }
-    }
+    deleteChangeField(path, field, true);
     saveToLocalStorage();
     refreshDetailsPreservingState();
     renderTree();
@@ -1588,38 +1854,26 @@ function resetOptionField(path, field) {
 // ============================================================================
 function resetMyChanges() {
     showModal('Reset My Changes', 'Are you sure you want to reset all your local changes?', () => {
-        MY_CHANGES = { changes: {}, comments: {} };
+        MY_CHANGES = { rootOptions: {}, commands: {} };
         saveToLocalStorage();
         renderTree();
-        if (selectedPath) {
-            const cmd = getCommandByPath(selectedPath);
-            if (cmd) renderDetails(selectedPath, cmd);
-        }
+        refreshDetailsPreservingState();
         updateStats();
     });
 }
 
 function resetAllToOriginal() {
     showModal('Reset All to Original', 'This will reset your local changes. Are you sure?', () => {
-        MY_CHANGES = { changes: {}, comments: {} };
+        MY_CHANGES = { rootOptions: {}, commands: {} };
         saveToLocalStorage();
         renderTree();
-        if (selectedPath) {
-            const cmd = getCommandByPath(selectedPath);
-            if (cmd) renderDetails(selectedPath, cmd);
-        }
+        refreshDetailsPreservingState();
         updateStats();
     });
 }
 
 function exportChanges() {
-    const exportData = {
-        exportedAt: new Date().toISOString(),
-        basedOnCurrentState: CURRENT_STATE?.version || "unknown",
-        changes: MY_CHANGES.changes || {},
-        comments: MY_CHANGES.comments || {}
-    };
-
+    const exportData = buildExportData();
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1627,6 +1881,20 @@ function exportChanges() {
     a.download = `ydbd-cli-changes-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
+}
+
+function buildExportData() {
+    const data = {
+        exportedAt: new Date().toISOString(),
+        basedOnCurrentState: CURRENT_STATE?.version || "unknown",
+    };
+    if (MY_CHANGES.rootOptions && Object.keys(MY_CHANGES.rootOptions).length > 0) {
+        data.rootOptions = JSON.parse(JSON.stringify(MY_CHANGES.rootOptions));
+    }
+    if (MY_CHANGES.commands && Object.keys(MY_CHANGES.commands).length > 0) {
+        data.commands = JSON.parse(JSON.stringify(MY_CHANGES.commands));
+    }
+    return data;
 }
 
 function importChanges(event) {
@@ -1638,15 +1906,12 @@ function importChanges(event) {
         try {
             const data = JSON.parse(e.target.result);
             MY_CHANGES = {
-                changes: data.changes || {},
-                comments: data.comments || {}
+                rootOptions: data.rootOptions || {},
+                commands: data.commands || {}
             };
             saveToLocalStorage();
             renderTree();
-            if (selectedPath) {
-                const cmd = getCommandByPath(selectedPath);
-                if (cmd) renderDetails(selectedPath, cmd);
-            }
+            refreshDetailsPreservingState();
             updateStats();
             alert('Changes imported successfully!');
         } catch (err) {
@@ -1749,8 +2014,8 @@ const GITHUB_CONFIG = {
 };
 
 function saveChanges() {
-    const hasChanges = (MY_CHANGES.changes && Object.keys(MY_CHANGES.changes).length > 0) ||
-                       (MY_CHANGES.comments && Object.keys(MY_CHANGES.comments).length > 0);
+    const hasChanges = (MY_CHANGES.rootOptions && Object.keys(MY_CHANGES.rootOptions).length > 0) ||
+                       (MY_CHANGES.commands && Object.keys(MY_CHANGES.commands).length > 0);
 
     if (!hasChanges) {
         alert('No changes to save.');
@@ -1767,13 +2032,7 @@ function closeSaveModal() {
 }
 
 function copyChangesToClipboard() {
-    const changesData = {
-        exportedAt: new Date().toISOString(),
-        basedOnCurrentState: CURRENT_STATE?.version || "unknown",
-        changes: MY_CHANGES.changes || {},
-        comments: MY_CHANGES.comments || {}
-    };
-
+    const changesData = buildExportData();
     const jsonContent = JSON.stringify(changesData, null, 2);
 
     navigator.clipboard.writeText(jsonContent).then(() => {
