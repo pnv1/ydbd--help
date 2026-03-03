@@ -210,6 +210,26 @@
         }
         .badge-hidden { background: #e0e0e0; color: #666; }
         .badge-changed { background: #ffc107; color: #212529; }
+        .badge-will-show { background: #28a745; color: white; }
+        .badge-will-hide { background: #dc3545; color: white; }
+        .badge-edit-desc { background: #fd7e14; color: white; }
+        .badge-my-edit { background: #007bff; color: white; }
+
+        .comment-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            color: #6c757d;
+            flex-shrink: 0;
+            margin-left: 2px;
+        }
+
+        .comment-icon svg {
+            width: 14px;
+            height: 14px;
+        }
 
         .tree-children {
             margin-left: 16px;
@@ -595,11 +615,12 @@
     <div class="main">
         <div class="tree-panel">
             <div class="legend">
-                <div class="legend-item"><div class="legend-color will-show"></div> Will show</div>
-                <div class="legend-item"><div class="legend-color will-hide"></div> Will hide</div>
-                <div class="legend-item"><div class="legend-color modified"></div> Modified</div>
-                <div class="legend-item"><div class="legend-color has-inside"></div> Has changes inside</div>
-                <div class="legend-item"><div class="legend-color my-change"></div> My edit</div>
+                <div class="legend-item"><span class="badge badge-will-show">делаем видимой</span></div>
+                <div class="legend-item"><span class="badge badge-will-hide">делаем скрытой</span></div>
+                <div class="legend-item"><span class="badge badge-edit-desc">меняем описание</span></div>
+                <div class="legend-item"><span class="badge badge-my-edit">моё изменение</span></div>
+                <div class="legend-item"><div class="legend-color has-inside"></div> есть изменения внутри</div>
+                <div class="legend-item"><span class="comment-icon" style="color:#6c757d"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.5 2A1.5 1.5 0 001 3.5v7A1.5 1.5 0 002.5 12h2.382l1.447 2.894a.75.75 0 001.342 0L9.118 12H11.5a1.5 1.5 0 001.5-1.5v-7A1.5 1.5 0 0011.5 2h-9z"/></svg></span> есть комментарий</div>
             </div>
             <div class="tree-controls">
                 <input type="text" id="searchInput" placeholder="Search commands..." oninput="filterTree()">
@@ -925,16 +946,26 @@ function renderCommand(cmd, parentPath, searchTerm, visFilter) {
         badge.textContent = 'hidden';
         badges.appendChild(badge);
     }
+    const details = getChangeDetails(fullPath, cmd, effectiveState);
+    details.forEach(d => {
+        const badge = document.createElement('span');
+        if (d === 'show') { badge.className = 'badge badge-will-show'; badge.textContent = 'делаем видимой'; }
+        else if (d === 'hide') { badge.className = 'badge badge-will-hide'; badge.textContent = 'делаем скрытой'; }
+        else { badge.className = 'badge badge-edit-desc'; badge.textContent = 'меняем описание'; }
+        badges.appendChild(badge);
+    });
     if (hasMyChange) {
         const badge = document.createElement('span');
-        badge.className = 'badge badge-changed';
-        badge.textContent = 'my edit';
+        badge.className = 'badge badge-my-edit';
+        badge.textContent = 'моё изменение';
         badges.appendChild(badge);
-    } else if (changeType) {
-        const badge = document.createElement('span');
-        badge.className = 'badge badge-changed';
-        badge.textContent = 'changed';
-        badges.appendChild(badge);
+    }
+    if (hasComment(fullPath)) {
+        const icon = document.createElement('span');
+        icon.className = 'comment-icon';
+        icon.title = 'Has comment';
+        icon.innerHTML = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.5 2A1.5 1.5 0 001 3.5v7A1.5 1.5 0 002.5 12h2.382l1.447 2.894a.75.75 0 001.342 0L9.118 12H11.5a1.5 1.5 0 001.5-1.5v-7A1.5 1.5 0 0011.5 2h-9z"/></svg>';
+        badges.appendChild(icon);
     }
     row.appendChild(badges);
 
@@ -1004,6 +1035,32 @@ function getChangeType(path, cmd, effectiveState) {
         return 'modified';
     }
     return null;
+}
+
+function getChangeDetails(path, cmd, effectiveState) {
+    const details = [];
+    if (cmd.visible !== effectiveState.visible) {
+        details.push(effectiveState.visible ? 'show' : 'hide');
+    }
+    if (cmd.description !== effectiveState.description) {
+        details.push('edit desc');
+    }
+    return details;
+}
+
+function getOptionChangeDetails(path, opt, effectiveOpt) {
+    const details = [];
+    if (opt.visible !== effectiveOpt.visible) {
+        details.push(effectiveOpt.visible ? 'show' : 'hide');
+    }
+    if (opt.description !== effectiveOpt.description) {
+        details.push('edit desc');
+    }
+    return details;
+}
+
+function hasComment(path) {
+    return !!(MY_CHANGES.comments?.[path] || GLOBAL_TARGET?.comments?.[path]);
 }
 
 function hasLocalChange(path) {
@@ -1176,6 +1233,8 @@ function renderOptions(cmdPath, options) {
         const optComment = getEffectiveComment(optPath);
         const escapedOptPath = optPath.replace(/'/g, "\\'");
         const safeName = name.replace(/[^a-zA-Z0-9]/g, '_');
+        const optDetails = getOptionChangeDetails(optPath, opt, effectiveOpt);
+        const optHasComment = hasComment(optPath);
 
         let classes = 'option-header';
         if (!effectiveOpt.visible) classes += ' hidden-opt';
@@ -1184,13 +1243,25 @@ function renderOptions(cmdPath, options) {
         else if (changeType === 'modified') classes += ' change-modified';
         if (hasMyChange) classes += ' my-change';
 
+        const detailBadges = optDetails.map(d => {
+            if (d === 'show') return '<span class="badge badge-will-show">делаем видимой</span>';
+            if (d === 'hide') return '<span class="badge badge-will-hide">делаем скрытой</span>';
+            return '<span class="badge badge-edit-desc">меняем описание</span>';
+        }).join('');
+
+        const myEditBadge = hasMyChange ? '<span class="badge badge-my-edit">моё изменение</span>' : '';
+
+        const commentIcon = optHasComment
+            ? '<span class="comment-icon" title="Has comment"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.5 2A1.5 1.5 0 001 3.5v7A1.5 1.5 0 002.5 12h2.382l1.447 2.894a.75.75 0 001.342 0L9.118 12H11.5a1.5 1.5 0 001.5-1.5v-7A1.5 1.5 0 0011.5 2h-9z"/></svg></span>'
+            : '';
+
         return `
             <div class="option-item">
                 <div class="${classes}" onclick="toggleOption(this)">
                     <span class="option-name">${name}</span>
                     <span class="option-desc-preview">${opt.description || ''}</span>
                     ${opt.required ? '<span class="badge badge-hidden">required</span>' : ''}
-                    ${hasMyChange ? '<span class="badge badge-changed">my edit</span>' : (changeType ? '<span class="badge badge-changed">changed</span>' : '')}
+                    ${detailBadges}${myEditBadge}${commentIcon}
                 </div>
                 <div class="option-details">
                     <div class="field-row">
