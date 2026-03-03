@@ -1339,10 +1339,11 @@ function getChangeDetails(path, cmd, effectiveState) {
 
 function getOptionChangeDetails(path, opt, effectiveOpt) {
     const details = [];
+    const originalName = path.split('.').pop();
     if (opt.visible !== effectiveOpt.visible) {
         details.push(effectiveOpt.visible ? 'show' : 'hide');
     }
-    if (opt.name !== effectiveOpt.name) {
+    if (originalName !== effectiveOpt.name) {
         details.push('rename');
     }
     if (opt.description !== effectiveOpt.description) {
