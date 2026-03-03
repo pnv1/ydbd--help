@@ -10,6 +10,7 @@
             --bg-hidden-to-visible: #d4edda;
             --bg-modified: #fff3cd;
             --bg-has-changes-inside: #fffde7;
+            --bg-has-own-changes: #ffe0b2;
             --text-hidden: #888;
             --text-visible: #212529;
             --border-my-changes: #004085;
@@ -152,6 +153,7 @@
         .tree-item-row.change-hidden { background: var(--bg-visible-to-hidden); }
         .tree-item-row.change-modified { background: var(--bg-modified); }
         .tree-item-row.has-changes-inside { background: var(--bg-has-changes-inside); }
+        .tree-item-row.has-own-changes { background: var(--bg-has-own-changes); }
         .tree-item-row.my-change { box-shadow: inset 3px 0 0 var(--border-my-changes); }
 
         .tree-toggle {
@@ -274,6 +276,32 @@
             border-radius: 6px;
             padding: 15px;
             margin-bottom: 15px;
+        }
+
+        .details-section.section-changed {
+            background: #fff8e1;
+            border-color: #ffe082;
+        }
+
+        .details-section.section-has-comment {
+            background: #e8f4fd;
+            border-color: #90caf9;
+        }
+
+        .field-row.field-changed {
+            background: #fff8e1;
+            border-radius: 4px;
+            padding: 4px 6px;
+            margin-left: -6px;
+            margin-right: -6px;
+        }
+
+        .field-row.field-has-comment {
+            background: #e8f4fd;
+            border-radius: 4px;
+            padding: 4px 6px;
+            margin-left: -6px;
+            margin-right: -6px;
         }
 
         .details-section h3 {
@@ -427,6 +455,7 @@
         .legend-color.will-hide { background: var(--bg-visible-to-hidden); }
         .legend-color.modified { background: var(--bg-modified); }
         .legend-color.has-inside { background: var(--bg-has-changes-inside); }
+        .legend-color.has-own { background: var(--bg-has-own-changes); }
         .legend-color.my-change { box-shadow: inset 3px 0 0 var(--border-my-changes); background: white; border: 1px solid #ddd; }
 
         .modal-overlay {
@@ -621,6 +650,7 @@
                 <div class="legend-item"><span class="badge badge-rename">переименовываем</span></div>
                 <div class="legend-item"><span class="badge badge-edit-desc">меняем описание</span></div>
                 <div class="legend-item"><span class="badge badge-my-edit">моё изменение</span></div>
+                <div class="legend-item"><div class="legend-color has-own"></div> изменены опции команды</div>
                 <div class="legend-item"><div class="legend-color has-inside"></div> есть изменения внутри</div>
                 <div class="legend-item"><span class="comment-icon" style="color:#6c757d"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.5 2A1.5 1.5 0 001 3.5v7A1.5 1.5 0 002.5 12h2.382l1.447 2.894a.75.75 0 001.342 0L9.118 12H11.5a1.5 1.5 0 001.5-1.5v-7A1.5 1.5 0 0011.5 2h-9z"/></svg></span> есть комментарий</div>
             </div>
@@ -1086,7 +1116,11 @@ function renderTree() {
     const rootRow = document.createElement('div');
     rootRow.className = 'tree-item-row visible-cmd';
     if (selectedPath === 'ydbd') rootRow.classList.add('selected');
-    if (hasChangesInside('ydbd')) rootRow.classList.add('has-changes-inside');
+    if (hasOwnChanges('ydbd')) {
+        rootRow.classList.add('has-own-changes');
+    } else if (hasChangesInside('ydbd')) {
+        rootRow.classList.add('has-changes-inside');
+    }
 
     const rootToggle = document.createElement('span');
     rootToggle.className = 'tree-toggle expandable';
@@ -1172,6 +1206,8 @@ function renderCommand(cmd, parentPath, searchTerm, visFilter) {
         row.classList.add('change-hidden');
     } else if (changeType === 'modified') {
         row.classList.add('change-modified');
+    } else if (hasOwnChanges(fullPath)) {
+        row.classList.add('has-own-changes');
     } else if (hasInsideChanges) {
         row.classList.add('has-changes-inside');
     }
@@ -1377,6 +1413,28 @@ function _hasValueFields(obj) {
     return false;
 }
 
+function hasOwnChanges(path) {
+    function checkSource(source) {
+        if (!source) return false;
+        if (path === 'ydbd') {
+            if (source.rootOptions && Object.keys(source.rootOptions).length > 0) return true;
+            return false;
+        }
+        const node = _getChangesNode(source, path, false);
+        if (!node) return false;
+        for (const k of Object.keys(node)) {
+            if (k === 'subcommands') continue;
+            if (k === 'options') {
+                if (Object.keys(node.options).length > 0) return true;
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
+    return checkSource(MY_CHANGES) || checkSource(GLOBAL_TARGET);
+}
+
 function _isOptionPath(path) {
     const parts = path.split('.');
     if (parts.length < 2) return false;
@@ -1447,13 +1505,18 @@ function renderDetails(path, cmd) {
     const comment = getEffectiveComment(path);
     const escapedPath = path.replace(/'/g, "\\'");
 
+    const visChanged = cmd.visible !== effectiveState.visible;
+    const nameChanged = cmd.name !== effectiveState.name;
+    const descChanged = cmd.description !== effectiveState.description;
+    const hasCommentText = comment.trim().length > 0;
+
     let html = `
         <div class="details-header">
             <h2>${cmd.name}</h2>
             <div class="details-path">${path}</div>
         </div>
 
-        <div class="details-section">
+        <div class="details-section${visChanged ? ' section-changed' : ''}">
             <h3>Visibility</h3>
             <div class="field-row">
                 <div class="field-label">Current:</div>
@@ -1481,7 +1544,7 @@ function renderDetails(path, cmd) {
             </div>
         </div>
 
-        <div class="details-section">
+        <div class="details-section${nameChanged ? ' section-changed' : ''}">
             <h3>Name</h3>
             <div class="field-row">
                 <div class="field-label">Current:</div>
@@ -1499,7 +1562,7 @@ function renderDetails(path, cmd) {
             </div>
         </div>
 
-        <div class="details-section">
+        <div class="details-section${descChanged ? ' section-changed' : ''}">
             <h3>Description</h3>
             <div class="field-row">
                 <div class="field-label">Current:</div>
@@ -1517,7 +1580,7 @@ function renderDetails(path, cmd) {
             </div>
         </div>
 
-        <div class="details-section">
+        <div class="details-section${hasCommentText ? ' section-has-comment' : ''}">
             <h3>Comment</h3>
             <div class="field-row">
                 <div class="field-label"></div>
@@ -1592,6 +1655,11 @@ function renderOptions(cmdPath, options) {
             ? '<span class="comment-icon" title="Has comment"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.5 2A1.5 1.5 0 001 3.5v7A1.5 1.5 0 002.5 12h2.382l1.447 2.894a.75.75 0 001.342 0L9.118 12H11.5a1.5 1.5 0 001.5-1.5v-7A1.5 1.5 0 0011.5 2h-9z"/></svg></span>'
             : '';
 
+        const optVisChanged = opt.visible !== effectiveOpt.visible;
+        const optNameChanged = name !== effectiveOpt.name;
+        const optDescChanged = opt.description !== effectiveOpt.description;
+        const optHasCommentText = optComment.trim().length > 0;
+
         return `
             <div class="option-item">
                 <div class="${classes}" onclick="toggleOption(this)">
@@ -1601,7 +1669,7 @@ function renderOptions(cmdPath, options) {
                     ${detailBadges}${myEditBadge}${commentIcon}
                 </div>
                 <div class="option-details">
-                    <div class="field-row">
+                    <div class="field-row${optVisChanged ? ' field-changed' : ''}">
                         <div class="field-label">Visibility:</div>
                         <div class="field-value">
                             <div class="visibility-toggle">
@@ -1619,13 +1687,13 @@ function renderOptions(cmdPath, options) {
                             </div>
                         </div>
                     </div>
-                    <div class="field-row">
+                    <div class="field-row${optNameChanged ? ' field-changed' : ''}">
                         <div class="field-label">Current name:</div>
                         <div class="field-value">
                             <div class="field-current">${name}</div>
                         </div>
                     </div>
-                    <div class="field-row">
+                    <div class="field-row${optNameChanged ? ' field-changed' : ''}">
                         <div class="field-label">Target name:</div>
                         <div class="field-value field-with-reset">
                             <input type="text" value="${escapeHtml(effectiveOpt.name)}"
@@ -1633,13 +1701,13 @@ function renderOptions(cmdPath, options) {
                             <div class="reset-row"><button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'name'); event.stopPropagation();">Reset</button></div>
                         </div>
                     </div>
-                    <div class="field-row">
+                    <div class="field-row${optDescChanged ? ' field-changed' : ''}">
                         <div class="field-label">Current desc:</div>
                         <div class="field-value">
                             <div class="field-current">${opt.description || '(empty)'}</div>
                         </div>
                     </div>
-                    <div class="field-row">
+                    <div class="field-row${optDescChanged ? ' field-changed' : ''}">
                         <div class="field-label">Target desc:</div>
                         <div class="field-value field-with-reset">
                             <textarea class="auto-resize" onchange="updateOptionDescription('${escapedOptPath}', this.value)"
@@ -1647,7 +1715,7 @@ function renderOptions(cmdPath, options) {
                             <div class="reset-row"><button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'description'); event.stopPropagation();">Reset</button></div>
                         </div>
                     </div>
-                    <div class="field-row">
+                    <div class="field-row${optHasCommentText ? ' field-has-comment' : ''}">
                         <div class="field-label">Comment:</div>
                         <div class="field-value">
                             <textarea class="auto-resize" placeholder="Add a comment..."
