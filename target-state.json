@@ -77,26 +77,6 @@
         }
       }
     },
-    "db": {
-      "subcommands": {
-        "schema": {
-          "subcommands": {
-            "table": {
-              "subcommands": {
-                "copy": {
-                  "options": {
-                    "{--database|--db}": {
-                      "name": "{--database|--db}",
-                      "comment": "Стоит рассмотреть переход к --database как основному длинному имени (для консистентности с YDB CLI, где используется --database). --db оставить алиасом."
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "discovery": {
       "subcommands": {
         "list": {
