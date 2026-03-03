@@ -1,4 +1,48 @@
 {
-  "exportedAt": "2026-02-25T00:00:00.000Z",
-  "basedOnCurrentState": "1.4"
+  "exportedAt": "2026-03-03T11:26:12.835Z",
+  "basedOnCurrentState": "1.4",
+  "rootOptions": {
+    "{-d|--dump}": {
+      "visible": false,
+      "comment": "Опция была видна в --help, хотя по факту не использовалась (?)"
+    }
+  },
+  "commands": {
+    "admin": {
+      "subcommands": {
+        "debug": {
+          "subcommands": {
+            "interconnect": {
+              "subcommands": {
+                "closeinputsession": {
+                  "options": {
+                    "--node": {
+                      "visible": false,
+                      "description": "Peer node id to close input session for",
+                      "comment": "Some test comment"
+                    }
+                  },
+                  "name": "close-input-session"
+                },
+                "closepeersocket": {
+                  "name": "close-peer-socket"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "discovery": {
+      "subcommands": {
+        "list": {
+          "options": {
+            "{-d|--db}": {
+              "name": "{-d|--database}"
+            }
+          }
+        }
+      }
+    }
+  }
 }
