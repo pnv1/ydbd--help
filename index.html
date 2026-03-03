@@ -743,6 +743,70 @@ function autoResizeTextarea(textarea) {
     textarea.style.height = Math.max(40, textarea.scrollHeight) + 'px';
 }
 
+function refreshDetailsPreservingState() {
+    if (!selectedPath) return;
+    const cmd = getCommandByPath(selectedPath);
+    if (!cmd) return;
+
+    const expandedOptions = new Set();
+    document.querySelectorAll('.option-details.expanded').forEach(el => {
+        const header = el.closest('.option-item')?.querySelector('.option-name');
+        if (header) expandedOptions.add(header.textContent);
+    });
+
+    const focusedEl = document.activeElement;
+    let focusInfo = null;
+    if (focusedEl && focusedEl.closest('.details-panel')) {
+        const fieldRow = focusedEl.closest('.field-row');
+        const optItem = focusedEl.closest('.option-item');
+        if (fieldRow) {
+            focusInfo = {
+                optName: optItem?.querySelector('.option-name')?.textContent,
+                label: fieldRow.querySelector('.field-label')?.textContent,
+                selStart: focusedEl.selectionStart,
+                selEnd: focusedEl.selectionEnd
+            };
+        }
+    }
+
+    renderDetails(selectedPath, cmd);
+
+    expandedOptions.forEach(optName => {
+        document.querySelectorAll('.option-header .option-name').forEach(nameEl => {
+            if (nameEl.textContent === optName) {
+                const details = nameEl.closest('.option-item')?.querySelector('.option-details');
+                if (details) {
+                    details.classList.add('expanded');
+                    details.querySelectorAll('.auto-resize').forEach(autoResizeTextarea);
+                }
+            }
+        });
+    });
+
+    if (focusInfo) {
+        const optItems = document.querySelectorAll('.option-item');
+        for (const item of optItems) {
+            const nameEl = item.querySelector('.option-name');
+            if (focusInfo.optName && nameEl?.textContent !== focusInfo.optName) continue;
+            const rows = item.querySelectorAll('.field-row');
+            for (const row of rows) {
+                const label = row.querySelector('.field-label');
+                if (label?.textContent === focusInfo.label) {
+                    const input = row.querySelector('textarea, input[type="text"]');
+                    if (input) {
+                        input.focus();
+                        if (focusInfo.selStart !== undefined) {
+                            input.selectionStart = focusInfo.selStart;
+                            input.selectionEnd = focusInfo.selEnd;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+}
+
 // ============================================================================
 // Changes cache - to efficiently check if parent has changes inside
 // ============================================================================
@@ -1372,7 +1436,7 @@ function updateVisibility(path, visible) {
     }
     saveToLocalStorage();
     renderTree();
-    renderDetails(path, cmd);
+    refreshDetailsPreservingState();
     updateStats();
 }
 
@@ -1398,6 +1462,7 @@ function updateDescription(path, description) {
     }
     saveToLocalStorage();
     renderTree();
+    refreshDetailsPreservingState();
     updateStats();
 }
 
@@ -1409,7 +1474,9 @@ function updateComment(path, comment) {
         delete MY_CHANGES.comments[path];
     }
     saveToLocalStorage();
+    refreshDetailsPreservingState();
     renderTree();
+    updateStats();
 }
 
 function getOptionByPath(path) {
@@ -1447,10 +1514,7 @@ function updateOptionVisibility(path, visible) {
         MY_CHANGES.changes[path].visible = visible;
     }
     saveToLocalStorage();
-    if (selectedPath) {
-        const selectedCmd = getCommandByPath(selectedPath);
-        if (selectedCmd) renderDetails(selectedPath, selectedCmd);
-    }
+    refreshDetailsPreservingState();
     renderTree();
     updateStats();
 }
@@ -1476,10 +1540,7 @@ function updateOptionDescription(path, description) {
         MY_CHANGES.changes[path].description = description;
     }
     saveToLocalStorage();
-    if (selectedPath) {
-        const selectedCmd = getCommandByPath(selectedPath);
-        if (selectedCmd) renderDetails(selectedPath, selectedCmd);
-    }
+    refreshDetailsPreservingState();
     renderTree();
     updateStats();
 }
