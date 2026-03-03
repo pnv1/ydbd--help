@@ -72,6 +72,72 @@
       "description": "Print compatibility info of this binary and exit",
       "visible": true,
       "required": false
+    },
+    "--ca-file": {
+      "description": "File containing PEM encoded root certificates for SSL/TLS connections. If this parameter is empty, the default roots will be used.",
+      "visible": false,
+      "required": false,
+      "comment": "Hidden in old ydbd --help (registered before HideOptions). Visible in tree Global options for subcommands."
+    },
+    "--profile": {
+      "description": "Connection settings profile name",
+      "visible": false,
+      "required": false,
+      "comment": "Not in old outer parser at all. Registered by tree root (TClientCommandRootKikimrBase). Visible in subcommand Global options."
+    },
+    "--cluster-name": {
+      "description": "which cluster this node belongs to",
+      "visible": false,
+      "required": false,
+      "comment": "Hidden in old ydbd --help (from SetupGlobalOpts, hidden by HideOptions). Used by 'run' command."
+    },
+    "--log-level": {
+      "description": "default logging level",
+      "visible": false,
+      "required": false,
+      "comment": "Hidden in old ydbd --help (from SetupGlobalOpts, hidden by HideOptions). Used by 'run' command."
+    },
+    "--log-sampling-level": {
+      "description": "sample logs equal to or above this level",
+      "visible": false,
+      "required": false,
+      "comment": "Hidden in old ydbd --help (from SetupGlobalOpts, hidden by HideOptions). Used by 'run' command."
+    },
+    "--log-sampling-rate": {
+      "description": "log only each Nth message with priority matching sampling level; 0 turns log sampling off",
+      "visible": false,
+      "required": false,
+      "comment": "Hidden in old ydbd --help (from SetupGlobalOpts, hidden by HideOptions). Used by 'run' command."
+    },
+    "--log-format": {
+      "description": "log format to use; short skips the priority and timestamp",
+      "visible": false,
+      "required": false,
+      "comment": "Hidden in old ydbd --help (from SetupGlobalOpts, hidden by HideOptions). Used by 'run' command."
+    },
+    "--syslog": {
+      "description": "send to syslog instead of stderr",
+      "visible": false,
+      "required": false,
+      "comment": "Hidden in old ydbd --help (from SetupGlobalOpts, hidden by HideOptions). Used by 'run' command."
+    },
+    "--tcp": {
+      "description": "start tcp interconnect",
+      "visible": false,
+      "required": false,
+      "comment": "Hidden in old ydbd --help (from SetupGlobalOpts, hidden by HideOptions). Used by 'run' command."
+    },
+    "--udf": {
+      "description": "Load shared library with UDF by given path",
+      "visible": false,
+      "required": false,
+      "comment": "Hidden in old ydbd --help (from SetupGlobalOpts, hidden by HideOptions). Used by 'run' command."
+    },
+    "--udfs-dir": {
+      "description": "Load all shared libraries with UDFs found in given directory",
+      "visible": false,
+      "required": false,
+      "comment": "Hidden in old ydbd --help (from SetupGlobalOpts, hidden by HideOptions). Used by 'run' command."
     }
   },
   "commands": {
@@ -3030,6 +3096,190 @@
           "visible": true,
           "required": false
         }
+      }
+    },
+    "run": {
+      "name": "run",
+      "aliases": [],
+      "description": "",
+      "visible": false,
+      "comment": "Legacy run command. Not in tree — uses separate config parser path in main.cpp. Listed in MODE_MAP CSV but not in tree subcommands.",
+      "options": {
+        "{-n|--node}": { "description": "Node ID", "visible": true, "required": true },
+        "--domains-file": { "description": "domain config file", "visible": true, "required": true },
+        "--channels-file": { "description": "tablet channel profile config file", "visible": true, "required": true },
+        "--proxy": { "description": "Bind to proxy(-ies)", "visible": true, "required": false },
+        "--mon-port": { "description": "Monitoring port", "visible": true, "required": false },
+        "--mon-address": { "description": "Monitoring address", "visible": true, "required": false },
+        "--mon-cert": { "description": "Path to monitoring certificate file (https)", "visible": true, "required": false },
+        "--mon-key": { "description": "Path to monitoring private key file (https)", "visible": true, "required": false },
+        "--mon-ca": { "description": "Path to CA certificate file for verifying client certificates (mTLS)", "visible": true, "required": false },
+        "--mon-threads": { "description": "Monitoring http server threads", "visible": true, "required": false },
+        "{-u|--url-base}": { "description": "url base to request configs from", "visible": true, "required": false },
+        "--sys-file": { "description": "actor system config file (use dummy config by default)", "visible": true, "required": false },
+        "--naming-file": { "description": "static nameservice config file", "visible": true, "required": false },
+        "--bs-file": { "description": "blobstorage config file", "visible": true, "required": false },
+        "--log-file": { "description": "log config file", "visible": true, "required": false },
+        "--ic-file": { "description": "interconnect config file", "visible": true, "required": false },
+        "--vdisk-file": { "description": "vdisk kind config file", "visible": true, "required": false },
+        "--drivemodel-file": { "description": "drive model config file", "visible": true, "required": false },
+        "--kqp-file": { "description": "Kikimr Query Processor config file", "visible": true, "required": false },
+        "--incrhuge-file": { "description": "incremental huge blob keeper config file", "visible": true, "required": false },
+        "--memorylog-file": { "description": "set buffer size for memory log", "visible": true, "required": false },
+        "--grpc-file": { "description": "gRPC config file", "visible": true, "required": false },
+        "--grpc-port": { "description": "enable gRPC server on port", "visible": true, "required": false },
+        "--grpcs-port": { "description": "enable gRPC SSL server on port", "visible": true, "required": false },
+        "--kafka-port": { "description": "enable kafka proxy server on port", "visible": true, "required": false },
+        "--grpc-public-host": { "description": "set public gRPC host for discovery", "visible": true, "required": false },
+        "--grpc-public-port": { "description": "set public gRPC port for discovery", "visible": true, "required": false },
+        "--grpcs-public-port": { "description": "set public gRPC SSL port for discovery", "visible": true, "required": false },
+        "--pq-file": { "description": "PQ config file", "visible": true, "required": false },
+        "--pqcd-file": { "description": "PQCD config file", "visible": true, "required": false },
+        "--netclassifier-file": { "description": "NetClassifier config file", "visible": true, "required": false },
+        "--auth-file": { "description": "authorization config file", "visible": true, "required": false },
+        "--auth-token-file": { "description": "authorization token config file", "visible": true, "required": false },
+        "--key-file": { "description": "encryption key config file", "visible": true, "required": false },
+        "--sqs-file": { "description": "SQS config file", "visible": true, "required": false },
+        "--http-proxy-file": { "description": "Http proxy config file", "visible": true, "required": false },
+        "--alloc-file": { "description": "Allocator config file", "visible": true, "required": false },
+        "--yql-file": { "description": "Yql Analytics config file", "visible": true, "required": false },
+        "--fq-file": { "description": "Federated Query config file", "visible": true, "required": false },
+        "--pdisk-key-file": { "description": "pdisk encryption key config file", "visible": true, "required": false },
+        "--public-http-file": { "description": "Public HTTP config file", "visible": true, "required": false },
+        "--bootstrap-file": { "description": "Bootstrap config file", "visible": true, "required": false },
+        "--feature-flags-file": { "description": "File with feature flags to turn new features on/off", "visible": true, "required": false },
+        "{-r|--restarts-count-file}": { "description": "State for restarts monitoring counter, use empty string to disable (default: \"\")", "visible": true, "required": false },
+        "--compile-inflight-limit": { "description": "Limit on parallel programs compilation", "visible": true, "required": false }
+      }
+    },
+    "format-info": {
+      "name": "format-info",
+      "aliases": [],
+      "description": "read pdisk format info",
+      "visible": false,
+      "comment": "Standalone command. Not in tree in old code — handled via MODE_MAP switch.",
+      "options": {
+        "{-p|--pdisk-path}": { "description": "path to pdisk to read format info", "visible": true, "required": true },
+        "{-k|--main-key}": { "description": "encryption main-key to use while reading", "visible": true, "required": false },
+        "--master-key": { "description": "obsolete: use main-key", "visible": true, "required": false },
+        "{-v|--verbose}": { "description": "output detailed information for debugging (default: 0)", "visible": true, "required": false }
+      }
+    },
+    "format-util": {
+      "name": "format-util",
+      "aliases": [],
+      "description": "query blob storage format configuration file",
+      "visible": false,
+      "comment": "Standalone command. Not in tree in old code — handled via MODE_MAP switch.",
+      "options": {
+        "--format-file": { "description": "Blob storage fromat config file", "visible": true, "required": true },
+        "{-n|--node-id}": { "description": "Node ID to get drive info for", "visible": true, "required": true }
+      }
+    },
+    "node-by-host": {
+      "name": "node-by-host",
+      "aliases": [],
+      "description": "get node id by hostname",
+      "visible": false,
+      "comment": "Standalone command. Not in tree in old code — handled via MODE_MAP switch.",
+      "options": {
+        "--naming-file": { "description": "static nameservice config file", "visible": true, "required": true },
+        "{-n|--hostname}": { "description": "Hostname to detect node id for", "visible": true, "required": true },
+        "{-p|--port}": { "description": "Port to detect node id for", "visible": true, "required": false }
+      }
+    },
+    "scheme-initroot": {
+      "name": "scheme-initroot",
+      "aliases": [],
+      "description": "init scheme root",
+      "visible": false,
+      "comment": "Standalone command with MsgBus. Not in tree in old code — handled via MODE_MAP switch.",
+      "options": {
+        "{-n|--name}": { "description": "domain name", "visible": true, "required": true },
+        "--config": { "description": "apply global config", "visible": true, "required": false },
+        "--config-file": { "description": "load global config from file", "visible": true, "required": false },
+        "{-s|--server}": { "description": "server address to connect", "visible": true, "required": false }
+      }
+    },
+    "persqueue-request": {
+      "name": "persqueue-request",
+      "aliases": [],
+      "description": "send protobuf request to a persqueue tablet",
+      "visible": false,
+      "comment": "Standalone command with MsgBus. Not in tree in old code — handled via MODE_MAP switch.",
+      "options": {
+        "--protobuf": { "description": "string representation of the request protobuf", "visible": true, "required": false },
+        "--protofile": { "description": "file with protobuf", "visible": true, "required": false },
+        "{-s|--server}": { "description": "server address to connect", "visible": true, "required": false }
+      }
+    },
+    "persqueue-stress": {
+      "name": "persqueue-stress",
+      "aliases": [],
+      "description": "stress read or write to a persqueue tablet",
+      "visible": false,
+      "comment": "Standalone command with MsgBus. Not in tree in old code — handled via MODE_MAP switch.",
+      "options": {
+        "{-c|--command}": { "description": "type of action", "visible": true, "required": true },
+        "--topic": { "description": "topic", "visible": true, "required": true },
+        "--partition": { "description": "partition", "visible": true, "required": true },
+        "--sourceid": { "description": "sourceId", "visible": true, "required": false },
+        "{-b|--batchsize}": { "description": "batch size", "visible": true, "required": false },
+        "{-m|--minsize}": { "description": "msg min size", "visible": true, "required": false },
+        "{-M|--maxsize}": { "description": "msg max size", "visible": true, "required": false },
+        "{-o|--offset}": { "description": "StartOffset (default: 0)", "visible": true, "required": false },
+        "{-R|--readtime}": { "description": "read time, ms (default: 1000)", "visible": true, "required": false },
+        "{-S|--sleetime}": { "description": "sleep time before reads, ms (default: 0)", "visible": true, "required": false },
+        "{-B|--speed}": { "description": "speed of read/write, Kb/s (default: 0)", "visible": true, "required": false },
+        "{-s|--server}": { "description": "server address to connect", "visible": true, "required": false }
+      }
+    },
+    "persqueue-discover-clusters": {
+      "name": "persqueue-discover-clusters",
+      "aliases": [],
+      "description": "persqueue session clusters discovery",
+      "visible": false,
+      "comment": "Standalone command with gRPC. Not in tree in old code — handled via MODE_MAP switch. Has sub-modes: write-session, read-session.",
+      "subcommands": {
+        "write-session": {
+          "name": "write-session",
+          "aliases": [],
+          "description": "",
+          "visible": true,
+          "options": {
+            "--topic": { "description": "topic", "visible": true, "required": true },
+            "--source-id": { "description": "source id", "visible": true, "required": true },
+            "--partition-group": { "description": "partition group", "visible": true, "required": false },
+            "--preferred-cluster": { "description": "prioritized cluster's name", "visible": true, "required": false },
+            "--verbose": { "description": "output detailed information for debugging (default: 0)", "visible": true, "required": false },
+            "{-s|--server}": { "description": "server address to connect", "visible": true, "required": false }
+          }
+        },
+        "read-session": {
+          "name": "read-session",
+          "aliases": [],
+          "description": "",
+          "visible": true,
+          "options": {
+            "--topic": { "description": "topic", "visible": true, "required": true },
+            "--mirror-to-cluster": { "description": "do not set the option to enable all-original mode", "visible": true, "required": false },
+            "--verbose": { "description": "output detailed information for debugging (default: 0)", "visible": true, "required": false },
+            "{-s|--server}": { "description": "server address to connect", "visible": true, "required": false }
+          }
+        }
+      },
+      "options": {}
+    },
+    "actorsys-perf-test": {
+      "name": "actorsys-perf-test",
+      "aliases": [],
+      "description": "make actorsystem performance test",
+      "visible": false,
+      "comment": "Standalone command. Not in tree in old code — handled via MODE_MAP switch.",
+      "options": {
+        "{-t|--threads}": { "description": "size of thread pool to measure (default: 3)", "visible": true, "required": false },
+        "{-d|--duration}": { "description": "duration of test in seconds (default: 60)", "visible": true, "required": false },
+        "{-s|--server}": { "description": "server address to connect", "visible": true, "required": false }
       }
     }
   }
