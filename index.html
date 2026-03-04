@@ -1966,6 +1966,68 @@ function deepMergeTarget(base, overrides) {
     return result;
 }
 
+// True if merged option is effectively the same as current (no need to include in export).
+function optionSameAsCurrent(cmdPath, optName, mergedOpt) {
+    const fullPath = cmdPath === 'ydbd' ? `ydbd.${optName}` : `${cmdPath}.${optName}`;
+    const current = getOptionByPath(fullPath);
+    if (!current) return true;
+    const effVis = mergedOpt.visible ?? current.visible;
+    const effDesc = (mergedOpt.description ?? current.description ?? '').trim();
+    const effName = (mergedOpt.name ?? optName).trim();
+    const effComment = (mergedOpt.comment ?? '').trim();
+    const curDesc = (current.description ?? '').trim();
+    return effVis === current.visible && effDesc === curDesc && effName === optName && effComment === '';
+}
+
+// Filter merged options: drop keys that are same as current.
+function filterMergedOptions(cmdPath, mergedOptions) {
+    const result = {};
+    for (const [optName, mergedOpt] of Object.entries(mergedOptions || {})) {
+        if (!optionSameAsCurrent(cmdPath, optName, mergedOpt)) {
+            result[optName] = mergedOpt;
+        }
+    }
+    return result;
+}
+
+// True if merged command node (own fields only) equals current.
+function commandFieldsSameAsCurrent(mergedCmd, currentCmd) {
+    if (!currentCmd) return true;
+    const effName = (mergedCmd.name ?? currentCmd.name ?? '').trim();
+    const effVis = mergedCmd.visible ?? currentCmd.visible;
+    const effDesc = (mergedCmd.description ?? currentCmd.description ?? '').trim();
+    const effComment = (mergedCmd.comment ?? '').trim();
+    const curName = (currentCmd.name ?? '').trim();
+    const curDesc = (currentCmd.description ?? '').trim();
+    return effName === curName && effVis === currentCmd.visible && effDesc === curDesc && effComment === '';
+}
+
+// Filter merged commands tree: drop nodes that are same as current; prune empty parents.
+function filterMergedCommandsTree(mergedCommands, currentCommands, parentPath) {
+    const result = {};
+    for (const [name, mergedCmd] of Object.entries(mergedCommands || {})) {
+        const currentCmd = currentCommands?.[name];
+        const childPath = parentPath ? `${parentPath}.${name}` : name;
+        const filteredSub = (mergedCmd.subcommands && currentCmd?.subcommands)
+            ? filterMergedCommandsTree(mergedCmd.subcommands, currentCmd.subcommands, childPath)
+            : {};
+        const filteredOpts = mergedCmd.options
+            ? filterMergedOptions(childPath, mergedCmd.options)
+            : {};
+        const cmdSame = commandFieldsSameAsCurrent(mergedCmd, currentCmd);
+        const hasSub = Object.keys(filteredSub).length > 0;
+        const hasOpts = Object.keys(filteredOpts).length > 0;
+        if (cmdSame && !hasSub && !hasOpts) continue;
+        const node = { ...mergedCmd };
+        if (hasSub) node.subcommands = filteredSub;
+        else delete node.subcommands;
+        if (hasOpts) node.options = filteredOpts;
+        else delete node.options;
+        result[name] = node;
+    }
+    return result;
+}
+
 function buildExportData() {
     const base = {
         rootOptions: GLOBAL_TARGET?.rootOptions || {},
@@ -1975,11 +2037,17 @@ function buildExportData() {
         rootOptions: deepMergeTarget(base.rootOptions, MY_CHANGES.rootOptions || {}),
         commands: deepMergeTarget(base.commands, MY_CHANGES.commands || {})
     };
+    const filteredRootOptions = filterMergedOptions('ydbd', merged.rootOptions);
+    const filteredCommands = filterMergedCommandsTree(
+        merged.commands,
+        CURRENT_STATE?.commands,
+        'ydbd'
+    );
     return {
         exportedAt: new Date().toISOString(),
         basedOnCurrentState: CURRENT_STATE?.version || "unknown",
-        rootOptions: merged.rootOptions,
-        commands: merged.commands
+        rootOptions: filteredRootOptions,
+        commands: filteredCommands
     };
 }
 
