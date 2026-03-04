@@ -65,9 +65,9 @@
 
         .btn-primary { background: #007bff; color: white; }
         .btn-secondary { background: #6c757d; color: white; }
-        .btn-warning { background: #ffc107; color: #212529; }
         .btn-danger { background: #dc3545; color: white; }
         button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
 
         .main {
             display: flex;
@@ -582,8 +582,7 @@
     <div class="header">
         <h1>YDBD CLI Help Editor</h1>
         <div class="header-buttons">
-            <button class="btn-secondary" onclick="resetMyChanges()">Reset My Changes</button>
-            <button class="btn-warning" onclick="resetAllToOriginal()">Reset All to Original</button>
+            <button class="btn-secondary" id="resetMyBtn" onclick="resetMyChanges()" disabled>Reset My Changes</button>
             <button class="btn-primary" onclick="saveChanges()">Save Changes</button>
             <button class="btn-secondary" onclick="exportChanges()">Export JSON</button>
             <button class="btn-secondary" onclick="document.getElementById('importFile').click()">Import JSON</button>
@@ -1835,10 +1834,21 @@ function updateOptionName(path, newName) {
 
 function updateComment(path, comment) {
     const isOpt = _isOptionPath(path);
+    const globalNode = isOpt ? getGlobalChangesForOption(path) : getGlobalChangesForCommand(path);
+    const globalComment = globalNode?.comment ?? '';
+
     if (comment.trim()) {
-        setChangeField(path, 'comment', comment, isOpt);
+        if (comment === globalComment) {
+            deleteChangeField(path, 'comment', isOpt);
+        } else {
+            setChangeField(path, 'comment', comment, isOpt);
+        }
     } else {
-        deleteChangeField(path, 'comment', isOpt);
+        if (globalComment) {
+            setChangeField(path, 'comment', '', isOpt);
+        } else {
+            deleteChangeField(path, 'comment', isOpt);
+        }
     }
     saveToLocalStorage();
     refreshDetailsPreservingState();
@@ -1919,16 +1929,6 @@ function resetOptionField(path, field) {
 // ============================================================================
 function resetMyChanges() {
     showModal('Reset My Changes', 'Are you sure you want to reset all your local changes?', () => {
-        MY_CHANGES = { rootOptions: {}, commands: {} };
-        saveToLocalStorage();
-        renderTree();
-        refreshDetailsPreservingState();
-        updateStats();
-    });
-}
-
-function resetAllToOriginal() {
-    showModal('Reset All to Original', 'This will reset your local changes. Are you sure?', () => {
         MY_CHANGES = { rootOptions: {}, commands: {} };
         saveToLocalStorage();
         renderTree();
@@ -2043,6 +2043,10 @@ function updateStats() {
     document.getElementById('statVisible').textContent = visible;
     document.getElementById('statHidden').textContent = hidden;
     document.getElementById('statChanged').textContent = changed;
+
+    const hasMyEdits = (MY_CHANGES.rootOptions && Object.keys(MY_CHANGES.rootOptions).length > 0) ||
+                       (MY_CHANGES.commands && Object.keys(MY_CHANGES.commands).length > 0);
+    document.getElementById('resetMyBtn').disabled = !hasMyEdits;
 }
 
 function escapeHtml(str) {

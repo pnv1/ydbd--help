@@ -12,12 +12,12 @@
       "comment": "Делаем видимой. Раньше была скрыта из-за HideOptions() в main.cpp — это баг, опция полезна и нужна пользователям. Описание берётся из tree root — включает env variable."
     },
     "{-k|--token}": {
-      "description": "security token",
-      "comment": "Описание теперь берётся из tree root (строчная буква). Раньше в outer parser было 'Security token' с заглавной."
+      "description": "Security token",
+      "comment": "Описание теперь берётся из tree root. Раньше в outer parser было отдельное дублирующее определение."
     },
     "{-s|--server}": {
-      "description": "server address to connect",
-      "comment": "Описание из tree root. Убрана ссылка на $KIKIMR_SERVER, которая была в старом outer parser. Строчная буква."
+      "description": "Server address to connect",
+      "comment": "Описание из tree root. Убрана ссылка на $KIKIMR_SERVER, которая была в старом outer parser."
     },
     "--client-cert-file": {
       "description": "File containing client certificate for SSL/TLS connections (PKCS#12 or PEM-encoded). Environment variable: YDB_CLIENT_CERT_FILE",
