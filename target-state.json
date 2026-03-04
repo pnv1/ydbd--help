@@ -330,10 +330,6 @@
         "--compile-inflight-limit": {
           "visible": false,
           "comment": "Задаётся в bootstrap_config.compile_service_config.inflight_limit файла --yaml-config."
-        },
-        "--yql-file": {
-          "visible": false,
-          "comment": "Устаревшая опция. Задаётся в секции yql_config файла --yaml-config."
         }
       }
     }
