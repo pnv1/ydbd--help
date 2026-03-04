@@ -311,17 +311,45 @@
           "visible": false,
           "comment": "Привязка к прокси MessageBus. MessageBus — deprecated технология."
         },
-        "--suppress-version-check": {
-          "visible": false,
-          "comment": "Задаётся в nameservice_config.suppress_version_check файла --yaml-config."
-        },
         "--force-database-labels": {
           "visible": false,
-          "comment": "Задаётся в monitoring_config.force_database_labels файла --yaml-config."
+          "comment": "Задаётся в конфиге: https://github.com/ydb-platform/ydb/blob/main/ydb/core/protos/config.proto#L607 (monitoring_config.force_database_labels)"
         },
         "--compile-inflight-limit": {
           "visible": false,
-          "comment": "Задаётся в bootstrap_config.compile_service_config.inflight_limit файла --yaml-config."
+          "comment": "Задаётся в конфиге: https://github.com/ydb-platform/ydb/blob/main/ydb/core/protos/compile_service_config.proto#L5 (bootstrap_config.compile_service_config.inflight_limit)"
+        },
+        "--suppress-version-check": {
+          "visible": false,
+          "comment": "Задаётся в конфиге: https://github.com/ydb-platform/ydb/blob/main/ydb/core/protos/config.proto#L187 (nameservice_config.suppress_version_check)"
+        },
+        "--node-type": {
+          "visible": false,
+          "comment": "Задаётся в конфиге: https://github.com/ydb-platform/ydb/blob/main/ydb/core/protos/tenant_pool.proto#L24 (tenant_pool_config.node_type)"
+        },
+        "--grpc-public-address-v4": {
+          "visible": false,
+          "comment": "Задаётся в конфиге: https://github.com/ydb-platform/ydb/blob/main/ydb/core/protos/config.proto#L802 (grpc_config.public_addresses_v4)"
+        },
+        "--grpc-public-address-v6": {
+          "visible": false,
+          "comment": "Задаётся в конфиге: https://github.com/ydb-platform/ydb/blob/main/ydb/core/protos/config.proto#L803 (grpc_config.public_addresses_v6)"
+        },
+        "--grpc-public-target-name-override": {
+          "visible": false,
+          "comment": "Задаётся в конфиге: https://github.com/ydb-platform/ydb/blob/main/ydb/core/protos/config.proto#L804 (grpc_config.public_target_name_override)"
+        },
+        "--pgwire-address": {
+          "visible": false,
+          "comment": "Задаётся в конфиге: https://github.com/ydb-platform/ydb/blob/main/ydb/core/protos/config.proto#L2852 (local_pg_wire_config.address)"
+        },
+        "--pgwire-port": {
+          "visible": false,
+          "comment": "Задаётся в конфиге: https://github.com/ydb-platform/ydb/blob/main/ydb/core/protos/config.proto#L2848 (local_pg_wire_config.listening_port)"
+        },
+        "{-r|--restarts-count-file}": {
+          "visible": false,
+          "comment": "Задаётся в конфиге: https://github.com/ydb-platform/ydb/blob/main/ydb/core/protos/config.proto#L629 (restarts_count_config.restarts_count_file)"
         }
       }
     }
