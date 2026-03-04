@@ -319,10 +319,6 @@
           "visible": false,
           "comment": "Задаётся в monitoring_config.force_database_labels файла --yaml-config."
         },
-        "--config-dir": {
-          "visible": false,
-          "comment": "Внутренняя опция. Задаётся в config_dir_path файла --yaml-config."
-        },
         "--compile-inflight-limit": {
           "visible": false,
           "comment": "Задаётся в bootstrap_config.compile_service_config.inflight_limit файла --yaml-config."
