@@ -1948,18 +1948,39 @@ function exportChanges() {
     URL.revokeObjectURL(url);
 }
 
+// Deep merge: base + overrides (overrides wins). Used to build full target-state for export.
+function deepMergeTarget(base, overrides) {
+    if (overrides === null || overrides === undefined) return base === undefined ? {} : base;
+    if (typeof overrides !== 'object' || Array.isArray(overrides)) return overrides;
+    const result = base && typeof base === 'object' && !Array.isArray(base) ? { ...base } : {};
+    for (const key of Object.keys(overrides)) {
+        const b = result[key];
+        const o = overrides[key];
+        if (o != null && typeof o === 'object' && !Array.isArray(o) &&
+            b != null && typeof b === 'object' && !Array.isArray(b)) {
+            result[key] = deepMergeTarget(b, o);
+        } else {
+            result[key] = o;
+        }
+    }
+    return result;
+}
+
 function buildExportData() {
-    const data = {
+    const base = {
+        rootOptions: GLOBAL_TARGET?.rootOptions || {},
+        commands: GLOBAL_TARGET?.commands || {}
+    };
+    const merged = {
+        rootOptions: deepMergeTarget(base.rootOptions, MY_CHANGES.rootOptions || {}),
+        commands: deepMergeTarget(base.commands, MY_CHANGES.commands || {})
+    };
+    return {
         exportedAt: new Date().toISOString(),
         basedOnCurrentState: CURRENT_STATE?.version || "unknown",
+        rootOptions: merged.rootOptions,
+        commands: merged.commands
     };
-    if (MY_CHANGES.rootOptions && Object.keys(MY_CHANGES.rootOptions).length > 0) {
-        data.rootOptions = JSON.parse(JSON.stringify(MY_CHANGES.rootOptions));
-    }
-    if (MY_CHANGES.commands && Object.keys(MY_CHANGES.commands).length > 0) {
-        data.commands = JSON.parse(JSON.stringify(MY_CHANGES.commands));
-    }
-    return data;
 }
 
 function importChanges(event) {
