@@ -304,6 +304,22 @@
             margin-right: -6px;
         }
 
+        .comment-preview {
+            margin-top: 8px;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #555;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .comment-preview a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .comment-preview a:hover {
+            text-decoration: underline;
+        }
+
         .details-section h3 {
             font-size: 14px;
             font-weight: 600;
@@ -314,18 +330,25 @@
         .field-row {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
+            gap: 6px;
         }
 
         .field-label {
-            width: 140px;
+            width: 95px;
             font-weight: 500;
             color: #666;
             padding-top: 6px;
             flex-shrink: 0;
         }
 
-        .field-value { flex: 1; }
+        .field-value { flex: 1; min-width: 0; }
+
+        .field-actions {
+            flex-shrink: 0;
+            align-self: flex-start;
+            padding-top: 4px;
+        }
 
         .field-value input[type="text"],
         .field-value textarea {
@@ -372,17 +395,6 @@
             cursor: pointer;
         }
         .reset-btn:hover { background: #e0e0e0; }
-
-        .field-with-reset {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .reset-row {
-            display: flex;
-            justify-content: flex-start;
-        }
 
         .options-list { margin-top: 10px; }
 
@@ -1533,9 +1545,9 @@ function renderDetails(path, cmd) {
                                    onchange="updateVisibility('${escapedPath}', false)">
                             Hidden
                         </label>
-                        <button class="reset-btn" onclick="resetField('${escapedPath}', 'visible')">Reset</button>
                     </div>
                 </div>
+                <div class="field-actions"><button class="reset-btn" onclick="resetField('${escapedPath}', 'visible')">Reset</button></div>
             </div>
         </div>
 
@@ -1549,11 +1561,11 @@ function renderDetails(path, cmd) {
             </div>
             <div class="field-row">
                 <div class="field-label">Target:</div>
-                <div class="field-value field-with-reset">
+                <div class="field-value">
                     <input type="text" value="${escapeHtml(effectiveState.name)}"
                            onchange="updateName('${escapedPath}', this.value)">
-                    <div class="reset-row"><button class="reset-btn" onclick="resetField('${escapedPath}', 'name')">Reset</button></div>
                 </div>
+                <div class="field-actions"><button class="reset-btn" onclick="resetField('${escapedPath}', 'name')">Reset</button></div>
             </div>
         </div>
 
@@ -1567,23 +1579,25 @@ function renderDetails(path, cmd) {
             </div>
             <div class="field-row">
                 <div class="field-label">Target:</div>
-                <div class="field-value field-with-reset">
+                <div class="field-value">
                     <textarea class="auto-resize" onchange="updateDescription('${escapedPath}', this.value)"
                               oninput="autoResizeTextarea(this)">${escapeHtml(effectiveState.description)}</textarea>
-                    <div class="reset-row"><button class="reset-btn" onclick="resetField('${escapedPath}', 'description')">Reset</button></div>
                 </div>
+                <div class="field-actions"><button class="reset-btn" onclick="resetField('${escapedPath}', 'description')">Reset</button></div>
             </div>
         </div>
 
         <div class="details-section${hasCommentText ? ' section-has-comment' : ''}">
             <h3>Comment</h3>
             <div class="field-row">
-                <div class="field-label"></div>
+                <div class="field-label">Comment:</div>
                 <div class="field-value">
                     <textarea class="auto-resize" placeholder="Add a comment for discussion..."
                               onchange="updateComment('${escapedPath}', this.value)"
                               oninput="autoResizeTextarea(this)">${escapeHtml(comment)}</textarea>
+                    ${hasCommentText ? `<div class="comment-preview">${linkifyComment(comment)}</div>` : ''}
                 </div>
+                <div class="field-actions"><button class="reset-btn" onclick="updateComment('${escapedPath}', ''); event.stopPropagation();">Clear</button></div>
             </div>
         </div>
     `;
@@ -1678,9 +1692,9 @@ function renderOptions(cmdPath, options) {
                                            onchange="updateOptionVisibility('${escapedOptPath}', false)">
                                     Hidden
                                 </label>
-                                <button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'visible'); event.stopPropagation();">Reset</button>
                             </div>
                         </div>
+                        <div class="field-actions"><button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'visible'); event.stopPropagation();">Reset</button></div>
                     </div>
                     <div class="field-row${optNameChanged ? ' field-changed' : ''}">
                         <div class="field-label">Current name:</div>
@@ -1690,11 +1704,11 @@ function renderOptions(cmdPath, options) {
                     </div>
                     <div class="field-row${optNameChanged ? ' field-changed' : ''}">
                         <div class="field-label">Target name:</div>
-                        <div class="field-value field-with-reset">
+                        <div class="field-value">
                             <input type="text" value="${escapeHtml(effectiveOpt.name)}"
                                    onchange="updateOptionName('${escapedOptPath}', this.value)">
-                            <div class="reset-row"><button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'name'); event.stopPropagation();">Reset</button></div>
                         </div>
+                        <div class="field-actions"><button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'name'); event.stopPropagation();">Reset</button></div>
                     </div>
                     <div class="field-row${optDescChanged ? ' field-changed' : ''}">
                         <div class="field-label">Current desc:</div>
@@ -1704,11 +1718,11 @@ function renderOptions(cmdPath, options) {
                     </div>
                     <div class="field-row${optDescChanged ? ' field-changed' : ''}">
                         <div class="field-label">Target desc:</div>
-                        <div class="field-value field-with-reset">
+                        <div class="field-value">
                             <textarea class="auto-resize" onchange="updateOptionDescription('${escapedOptPath}', this.value)"
                                       oninput="autoResizeTextarea(this)">${escapeHtml(effectiveOpt.description)}</textarea>
-                            <div class="reset-row"><button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'description'); event.stopPropagation();">Reset</button></div>
                         </div>
+                        <div class="field-actions"><button class="reset-btn" onclick="resetOptionField('${escapedOptPath}', 'description'); event.stopPropagation();">Reset</button></div>
                     </div>
                     <div class="field-row${optHasCommentText ? ' field-has-comment' : ''}">
                         <div class="field-label">Comment:</div>
@@ -1716,7 +1730,9 @@ function renderOptions(cmdPath, options) {
                             <textarea class="auto-resize" placeholder="Add a comment..."
                                       onchange="updateComment('${escapedOptPath}', this.value)"
                                       oninput="autoResizeTextarea(this)">${escapeHtml(optComment)}</textarea>
+                            ${optHasCommentText ? `<div class="comment-preview">${linkifyComment(optComment)}</div>` : ''}
                         </div>
+                        <div class="field-actions"><button class="reset-btn" onclick="updateComment('${escapedOptPath}', ''); event.stopPropagation();">Clear</button></div>
                     </div>
                 </div>
             </div>
@@ -2141,6 +2157,14 @@ function updateStats() {
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Turn URLs in text into clickable links (open in new tab). Escapes HTML for safety.
+function linkifyComment(str) {
+    if (!str) return '';
+    const escaped = escapeHtml(str);
+    const urlRe = /https?:\/\/[^\s<>"']+/g;
+    return escaped.replace(urlRe, url => `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`);
 }
 
 function showModal(title, message, callback) {
