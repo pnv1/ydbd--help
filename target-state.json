@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-03-04T14:04:25.696Z",
+  "exportedAt": "2026-03-10T09:47:58.639Z",
   "basedOnCurrentState": "1.4",
   "rootOptions": {
     "{-d|--dump}": {
@@ -82,7 +82,7 @@
         "list": {
           "options": {
             "{-d|--db}": {
-              "name": "{-d|--database}",
+              "name": "{--database|-d|--db}",
               "comment": "Переименование --db в --database для консистентности с YDB CLI. Короткий алиас -d сохраняется."
             }
           }
